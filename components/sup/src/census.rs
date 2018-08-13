@@ -652,7 +652,7 @@ mod tests {
     use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
     use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
     use butterfly::rumor::RumorStore;
-    use hcore::package::ident::PackageIdent;
+    use hcore::package::PackageIdent;
     use hcore::service::ServiceGroup;
 
     #[test]
@@ -669,7 +669,7 @@ mod tests {
             "shield",
             Some("0.10.4"),
             Some("20170419115548"),
-        );
+        ).unwrap();
         let sg_one = ServiceGroup::new(None, "shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();

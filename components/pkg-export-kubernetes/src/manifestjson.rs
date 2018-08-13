@@ -47,7 +47,7 @@ impl ManifestJson {
         ManifestJson {
             value: json!({
                 "metadata_name": manifest.metadata_name,
-                "service_name": manifest.pkg_ident.name,
+                "service_name": manifest.pkg_ident.name().as_str(),
                 "image": manifest.image,
                 "count": manifest.count,
                 "service_topology": manifest.service_topology.to_string(),

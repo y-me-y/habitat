@@ -29,7 +29,9 @@ fn is_ident(s: &str) -> bool {
 fn in_origin(ident: &str, origin: Option<&str>) -> bool {
     if origin.is_some() {
         let pi = PackageIdent::from_str(ident).unwrap(); // unwrap Ok
-        origin.unwrap() == pi.origin
+
+        // TODO fn: Should be passing `&PkgOrigin`, but until then use strs as before
+        origin.unwrap() == pi.origin().as_str()
     } else {
         true
     }

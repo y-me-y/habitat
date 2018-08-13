@@ -23,10 +23,10 @@ pub fn start(st: &str, bldr_url: &str, token: Option<&str>) -> Result<()> {
         0 => println!("No packages found that match '{}'", st),
         _ => {
             for p in &packages {
-                if let (&Some(ref version), &Some(ref release)) = (&p.version, &p.release) {
-                    println!("{}/{}/{}/{}", p.origin, p.name, version, release);
+                if let (&Some(ref version), &Some(ref release)) = (&p.version(), &p.release()) {
+                    println!("{}/{}/{}/{}", p.origin(), p.name(), version, release);
                 } else {
-                    println!("{}/{}", p.origin, p.name);
+                    println!("{}/{}", p.origin(), p.name());
                 }
             }
             if more {

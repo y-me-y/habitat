@@ -464,20 +464,20 @@ impl DockerBuildRoot {
     fn build_docker_image(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
-        let version = &ident.version.expect("version exists");
-        let release = &ident.release.expect("release exists");
+        let version = &ident.version().expect("version exists");
+        let release = &ident.release().expect("release exists");
         let json = json!({
-            "pkg_origin": ident.origin,
-            "pkg_name": ident.name,
-            "pkg_version": &version,
-            "pkg_release": &release,
+            "pkg_origin": ident.origin().as_str(),
+            "pkg_name": ident.name().as_str(),
+            "pkg_version": version.as_str(),
+            "pkg_release": release.as_str(),
             "channel": self.0.ctx().channel(),
         });
         let image_name = match naming.custom_image_name {
             Some(ref custom) => Handlebars::new()
                 .template_render(custom, &json)
                 .map_err(SyncFailure::new)?,
-            None => format!("{}/{}", ident.origin, ident.name),
+            None => format!("{}/{}", ident.origin(), ident.name()),
         }.to_lowercase();
 
         let image_name = match naming.registry_url {

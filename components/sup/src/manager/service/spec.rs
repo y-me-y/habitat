@@ -179,7 +179,8 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
         mut bind_map: BindMap,
     ) -> Vec<ServiceSpec> {
         // All the service specs will be customized copies of this.
-        let mut base_spec = ServiceSpec::default();
+        // TODO fn: There should be a better default starting point Ident
+        let mut base_spec = ServiceSpec::default_for(PackageIdent::terribad_default());
         self.into_spec(&mut base_spec);
         base_spec.composite = Some(composite_name);
         // TODO (CM): Not dealing with service passwords for now, since
@@ -244,46 +245,71 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
     }
 }
 
+// TODO fn: I no longer think it's appropriate to use default impls for these fields and would much
+// rather see them be explicitly set, then *all* deserialized. Maybe I'm wrong though?
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(default)]
 pub struct ServiceSpec {
     #[serde(
         deserialize_with = "deserialize_using_from_str",
         serialize_with = "serialize_using_to_string"
     )]
     pub ident: PackageIdent,
+    #[serde(default)]
     pub group: String,
     #[serde(
         deserialize_with = "deserialize_application_environment",
-        skip_serializing_if = "Option::is_none"
+        skip_serializing_if = "Option::is_none",
+        default
     )]
     pub application_environment: Option<ApplicationEnvironment>,
+    #[serde(default)]
     pub bldr_url: String,
+    #[serde(default)]
     pub channel: String,
+    #[serde(default)]
     pub topology: Topology,
+    #[serde(default)]
     pub update_strategy: UpdateStrategy,
+    #[serde(default)]
     pub binds: Vec<ServiceBind>,
+    #[serde(default)]
     pub binding_mode: BindingMode,
+    #[serde(default)]
     pub config_from: Option<PathBuf>,
     #[serde(
         deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
+        serialize_with = "serialize_using_to_string",
+        default
     )]
     pub desired_state: DesiredState,
+    #[serde(default)]
     pub svc_encrypted_password: Option<String>,
     // The name of the composite this service is a part of
+    #[serde(default)]
     pub composite: Option<String>,
 }
 
 impl ServiceSpec {
     pub fn default_for(ident: PackageIdent) -> Self {
-        let mut spec = Self::default();
-        spec.ident = ident;
-        spec
+        ServiceSpec {
+            ident: ident,
+            group: DEFAULT_GROUP.to_string(),
+            application_environment: None,
+            bldr_url: DEFAULT_BLDR_URL.to_string(),
+            channel: STABLE_CHANNEL.to_string(),
+            topology: Topology::default(),
+            update_strategy: UpdateStrategy::default(),
+            binds: Vec::default(),
+            binding_mode: BindingMode::Strict,
+            config_from: None,
+            desired_state: DesiredState::default(),
+            svc_encrypted_password: None,
+            composite: None,
+        }
     }
 
     fn to_toml_string(&self) -> Result<String> {
-        if self.ident == PackageIdent::default() {
+        if self.ident == PackageIdent::terribad_default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
         toml::to_string(self).map_err(|err| sup_error!(Error::ServiceSpecRender(err)))
@@ -329,7 +355,7 @@ impl ServiceSpec {
     }
 
     pub fn file_name(&self) -> String {
-        format!("{}.{}", &self.ident.name, SPEC_FILE_EXT)
+        format!("{}.{}", &self.ident.name(), SPEC_FILE_EXT)
     }
 
     pub fn validate(&self, package: &PackageInstall) -> Result<()> {
@@ -381,33 +407,13 @@ impl ServiceSpec {
     }
 }
 
-impl Default for ServiceSpec {
-    fn default() -> Self {
-        ServiceSpec {
-            ident: PackageIdent::default(),
-            group: DEFAULT_GROUP.to_string(),
-            application_environment: None,
-            bldr_url: DEFAULT_BLDR_URL.to_string(),
-            channel: STABLE_CHANNEL.to_string(),
-            topology: Topology::default(),
-            update_strategy: UpdateStrategy::default(),
-            binds: Vec::default(),
-            binding_mode: BindingMode::Strict,
-            config_from: None,
-            desired_state: DesiredState::default(),
-            svc_encrypted_password: None,
-            composite: None,
-        }
-    }
-}
-
 impl FromStr for ServiceSpec {
     type Err = SupError;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
         let spec: ServiceSpec =
             toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
-        if spec.ident == PackageIdent::default() {
+        if spec.ident == PackageIdent::terribad_default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
         Ok(spec)
@@ -517,7 +523,7 @@ fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &V
         for bind_mapping in bind_mappings.iter() {
             let group = ServiceGroup::new(
                 spec.application_environment.as_ref(),
-                &bind_mapping.satisfying_service.name,
+                bind_mapping.satisfying_service.name(),
                 &spec.group,
                 None, // <-- organization
             ).expect(
@@ -539,7 +545,7 @@ fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &V
     // Note that it consumes the values from cli_binds
     for bind in binds
         .iter()
-        .filter(|bind| bind.service_name.as_ref().unwrap() == &spec.ident.name)
+        .filter(|bind| bind.service_name.as_ref().unwrap() == spec.ident.name().as_str())
     {
         final_binds.insert(bind.name.clone(), bind.clone());
     }
@@ -713,7 +719,8 @@ mod test {
     fn service_spec_to_toml_string_invalid_ident() {
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
-        let spec = ServiceSpec::default();
+
+        let spec = ServiceSpec::default_for(PackageIdent::terribad_default());
 
         match spec.to_toml_string() {
             Err(e) => match e.err {
@@ -866,7 +873,7 @@ mod test {
         let path = tmpdir.path().join("name.spec");
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
-        let spec = ServiceSpec::default();
+        let spec = ServiceSpec::default_for(PackageIdent::terribad_default());
 
         match spec.to_file(path) {
             Err(e) => match e.err {

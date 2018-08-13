@@ -90,9 +90,9 @@ impl Manifest {
             PackageIdent::from_str(pkg_ident_str)?
         };
 
-        let version_suffix = match pkg_ident.version {
+        let version_suffix = match pkg_ident.version() {
             Some(ref v) => pkg_ident
-                .release
+                .release()
                 .as_ref()
                 .map(|r| format!("{}-{}", v, r))
                 .unwrap_or(v.to_string()),
@@ -101,7 +101,7 @@ impl Manifest {
         let name = matches
             .value_of("K8S_NAME")
             .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
+            .unwrap_or_else(|| format!("{}-{}", pkg_ident.name(), version_suffix));
 
         let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
@@ -115,7 +115,7 @@ impl Manifest {
                             .unwrap_or_else(|| "latest".to_owned()),
                     ),
                     None => (
-                        format!("{}/{}", pkg_ident.origin, pkg_ident.name),
+                        format!("{}/{}", pkg_ident.origin(), pkg_ident.name()),
                         version_suffix,
                     ),
                 };

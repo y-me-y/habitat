@@ -47,9 +47,9 @@ impl ChartFile {
     ) -> Result<Self> {
         let name = matches
             .value_of("CHART")
-            .unwrap_or(&pkg_ident.name)
+            .unwrap_or(pkg_ident.name().as_str())
             .to_string();
-        let pkg_version = pkg_ident.version.as_ref();
+        let pkg_version = pkg_ident.version();
         let version = matches
             .value_of("VERSION")
             .or(pkg_version.map(|s| s.as_ref()))
@@ -57,7 +57,7 @@ impl ChartFile {
             .to_owned();
         let app_version = pkg_version.map(|v| {
             pkg_ident
-                .release
+                .release()
                 .as_ref()
                 .map(|r| format!("{}-{}", v, r))
                 .unwrap_or(v.to_string())

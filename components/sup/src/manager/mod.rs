@@ -55,7 +55,7 @@ use hcore::fs::FS_ROOT_PATH;
 use hcore::os::process::{self, Pid, Signal};
 use hcore::os::signals::{self, SignalEvent};
 use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
@@ -232,12 +232,12 @@ impl Manager {
     ) -> Result<Vec<ServiceSpec>> {
         let specs = match package.pkg_type()? {
             PackageType::Standalone => {
-                let mut spec = ServiceSpec::default();
+                let mut spec = ServiceSpec::default_for(opts.ident.clone().unwrap().into());
                 opts.into_spec(&mut spec);
                 vec![spec]
             }
             PackageType::Composite => opts.into_composite_spec(
-                package.ident().name.clone(),
+                package.ident().name().to_string(),
                 package.pkg_services()?,
                 package.bind_map()?,
             ),
@@ -253,7 +253,7 @@ impl Manager {
         let statuses = Self::status(&mgr.cfg)?;
         if let Some(ident) = opts.ident {
             for status in statuses {
-                if status.pkg.ident.satisfies(&ident) {
+                if status.pkg.ident.satisfies(&ident.clone().into()) {
                     let mut msg: protocol::types::ServiceStatus = status.into();
                     req.reply_complete(msg);
                     return Ok(());
@@ -446,7 +446,7 @@ impl Manager {
 
     // TODO (CM): BAAAAARF
     pub fn composite_path_by_ident(cfg: &ManagerConfig, ident: &PackageIdent) -> PathBuf {
-        let mut p = Self::composites_path(cfg.sup_root()).join(&ident.name);
+        let mut p = Self::composites_path(cfg.sup_root()).join(ident.name());
         p.set_extension("spec");
         p
     }
@@ -1075,17 +1075,18 @@ impl Manager {
                             // composite
                             let mut old_spec_names = HashSet::new();
                             for s in existing_service_specs.iter() {
-                                old_spec_names.insert(s.ident.name.clone());
+                                old_spec_names.insert(s.ident.name().to_string());
                             }
                             let mut new_spec_names = HashSet::new();
                             for s in new_service_specs.iter() {
-                                new_spec_names.insert(s.ident.name.clone());
+                                new_spec_names.insert(s.ident.name().to_string());
                             }
 
                             let specs_to_delete: HashSet<_> =
                                 old_spec_names.difference(&new_spec_names).collect();
                             for spec in existing_service_specs.iter() {
-                                if specs_to_delete.contains(&spec.ident.name) {
+                                if specs_to_delete.contains(&spec.ident.name().as_str().to_string())
+                                {
                                     let file = Manager::spec_path_for(&mgr.cfg, spec);
                                     req.info(format!("Unloading {:?}", file))?;
                                     std::fs::remove_file(&file).map_err(|err| {
@@ -1604,7 +1605,9 @@ impl Manager {
             .iter()
         {
             let spec = service.to_spec();
-            active_specs.insert(spec.ident.name.clone(), spec);
+            // TODO fn: active_specs should be `HashMap<PkgName>`, until then, use Strings as
+            // before
+            active_specs.insert(spec.ident.name().to_string(), spec);
         }
 
         for service_event in self.spec_watcher.new_events(active_specs)? {

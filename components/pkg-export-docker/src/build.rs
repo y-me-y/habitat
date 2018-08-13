@@ -27,7 +27,7 @@ use common::ui::{Status, UIWriter, UI};
 use failure::SyncFailure;
 use hab;
 use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
+use hcore::package::{NameIdent, PackageArchive, PackageIdent, PackageInstall};
 use hcore::PROGRAM_NAME;
 use tempdir::TempDir;
 
@@ -438,10 +438,8 @@ impl BuildRootContext {
             let ident = if Path::new(ident_or_archive).is_file() {
                 // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
                 // identifier to ensure that update strategies will work if desired
-                let mut archive_ident = PackageArchive::new(ident_or_archive).ident()?;
-                archive_ident.version = None;
-                archive_ident.release = None;
-                archive_ident
+                let archive_ident = PackageArchive::new(ident_or_archive).ident()?;
+                PackageIdent::Name(NameIdent::new(archive_ident.origin(), archive_ident.name()))
             } else {
                 PackageIdent::from_str(ident_or_archive)?
             };
@@ -741,7 +739,7 @@ impl PkgIdentType {
 #[cfg(test)]
 mod test {
     use hcore;
-    use hcore::package::PackageTarget;
+    use hcore::package::{PackageTarget, PkgRelease, PkgVersion, ReleaseIdent};
 
     use clap::ArgMatches;
 
@@ -822,13 +820,22 @@ mod test {
         }
 
         pub fn install(&self) -> PackageIdent {
-            let mut ident = PackageIdent::from_str(&self.ident).unwrap();
-            if let None = ident.version {
-                ident.version = Some("1.2.3".into());
-            }
-            if let None = ident.release {
-                ident.release = Some("21120102121200".into());
-            }
+            let ident = PackageIdent::from_str(&self.ident).unwrap();
+            let ident = match ident {
+                PackageIdent::Release(_) => ident.clone(),
+                PackageIdent::Version(i) => PackageIdent::Release(ReleaseIdent::new(
+                    i.origin(),
+                    i.name(),
+                    i.version(),
+                    PkgRelease::new("21120102121200").unwrap(),
+                )),
+                PackageIdent::Name(i) => PackageIdent::Release(ReleaseIdent::new(
+                    i.origin(),
+                    i.name(),
+                    PkgVersion::new("1.2.3").unwrap(),
+                    PkgRelease::new("21120102121200").unwrap(),
+                )),
+            };
             let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
             util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
             util::write_file(prefix.join("TARGET"), PackageTarget::active_target()).unwrap();

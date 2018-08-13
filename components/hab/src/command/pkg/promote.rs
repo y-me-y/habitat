@@ -51,7 +51,8 @@ pub fn start(
     ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
     if channel != "stable" && channel != "unstable" {
-        match api_client.create_channel(&ident.origin, channel, token) {
+        // TODO fn: create_channel should take a `&PkgOrigin`, but until then, use strs as before
+        match api_client.create_channel(ident.origin().as_str(), channel, token) {
             Ok(_) => (),
             Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
             Err(e) => {

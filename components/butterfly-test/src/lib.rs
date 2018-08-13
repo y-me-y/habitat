@@ -39,7 +39,7 @@ use habitat_butterfly::server::timing::Timing;
 use habitat_butterfly::server::{Server, Suitability};
 use habitat_butterfly::trace::Trace;
 use habitat_core::crypto::keys::sym_key::SymKey;
-use habitat_core::package::{Identifiable, PackageIdent};
+use habitat_core::package::PackageIdent;
 use habitat_core::service::ServiceGroup;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;

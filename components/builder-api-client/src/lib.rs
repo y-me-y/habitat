@@ -223,12 +223,13 @@ mod json {
 
     impl From<PackageIdent> for super::PackageIdent {
         fn from(ident: PackageIdent) -> Self {
-            super::PackageIdent {
-                origin: ident.origin,
-                name: ident.name,
-                version: Some(ident.version),
-                release: Some(ident.release),
-            }
+            super::PackageIdent::new(
+                ident.origin,
+                ident.name,
+                Some(ident.version),
+                Some(ident.release),
+            )
+            .expect("No validation errors are expected")
         }
     }
 }
@@ -355,7 +356,8 @@ impl Client {
                     let mut encoded = String::new();
                     response.read_to_string(&mut encoded).map_err(Error::IO)?;
                     debug!("Body: {:?}", encoded);
-                    let v: serde_json::Value = serde_json::from_str(&encoded).map_err(Error::Json)?;
+                    let v: serde_json::Value =
+                        serde_json::from_str(&encoded).map_err(Error::Json)?;
                     let id = v["id"].as_str().unwrap();
                     Ok(id.to_string())
                 }
@@ -887,15 +889,16 @@ impl Client {
             url.push_str("/latest");
         }
 
-        let mut res =
-            self.maybe_add_authz(
+        let mut res = self
+            .maybe_add_authz(
                 self.0.get_with_custom_url(&url, |u| {
                     if target.is_some() {
                         u.set_query(Some(&format!("target={}", target.unwrap())))
                     }
                 }),
                 token,
-            ).send()?;
+            )
+            .send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -1180,15 +1183,16 @@ impl Client {
         D: DisplayProgress + Sized,
     {
         let t = target.as_ref();
-        let mut res =
-            self.maybe_add_authz(
+        let mut res = self
+            .maybe_add_authz(
                 self.0.get_with_custom_url(path, |u| {
                     if target.is_some() {
                         u.set_query(Some(&format!("target={}", t.unwrap())))
                     }
                 }),
                 token,
-            ).send()?;
+            )
+            .send()?;
 
         debug!("Response: {:?}", res);
 
@@ -1196,7 +1200,8 @@ impl Client {
             return Err(err_from_response(res));
         }
 
-        fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
+        fs::create_dir_all(&dst_path)
+            .map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
         let file_name = res
             .headers
@@ -1245,7 +1250,8 @@ impl Client {
         if res.status != hyper::status::StatusCode::Ok {
             return Err(err_from_response(res));
         }
-        fs::create_dir_all(&dst_path).map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
+        fs::create_dir_all(&dst_path)
+            .map_err(|e| Error::DownloadWrite(dst_path.to_path_buf(), e))?;
 
         let file_name = res
             .headers
@@ -1324,10 +1330,10 @@ fn channel_package_path(channel: &str, package: &PackageIdent) -> String {
     );
     if let Some(version) = package.version() {
         path.push_str("/");
-        path.push_str(version);
+        path.push_str(version.as_str());
         if let Some(release) = package.release() {
             path.push_str("/");
-            path.push_str(release);
+            path.push_str(release.as_str());
         }
     }
     path

@@ -56,7 +56,7 @@ use handlebars;
 use hcore;
 use hcore::os::process::Pid;
 use hcore::output::StructuredOutput;
-use hcore::package::{self, Identifiable, PackageInstall};
+use hcore::package::{self, PackageInstall};
 use launcher_client;
 use notify;
 use protocol;

@@ -257,21 +257,22 @@ impl SpecWatcher {
                     continue;
                 }
             };
-            if file_stem != &spec.ident.name {
+            if file_stem != spec.ident.name().as_str() {
                 outputln!(
                     "Error when loading service spec file '{}' \
                      (File name does not match ident name '{}' from ident = \"{}\", \
                      it should be called '{}.{}'). \
                      This file will be skipped.",
                     spec_file.display(),
-                    &spec.ident.name,
+                    &spec.ident.name(),
                     &spec.ident,
-                    &spec.ident.name,
+                    &spec.ident.name(),
                     SPEC_FILE_EXT
                 );
                 continue;
             }
-            specs.insert(spec.ident.name.clone(), spec);
+            // TODO fn: specs should be `HashMap<PkgName>`, until then, use String as before
+            specs.insert(spec.ident.name().into(), spec);
         }
         Ok(specs)
     }
@@ -636,7 +637,7 @@ mod test {
 
     fn new_saved_spec(tmpdir: &Path, ident: &str) -> ServiceSpec {
         let spec = new_spec(ident);
-        spec.to_file(tmpdir.join(format!("{}.spec", &spec.ident.name)))
+        spec.to_file(tmpdir.join(format!("{}.spec", &spec.ident.name())))
             .expect("couldn't save spec to disk");
         spec
     }
@@ -647,7 +648,7 @@ mod test {
             let spec = ServiceSpec::default_for(
                 PackageIdent::from_str(ident).expect("couldn't parse ident str"),
             );
-            map.insert(spec.ident.name.clone(), spec);
+            map.insert(spec.ident.name().to_string(), spec);
         }
         map
     }

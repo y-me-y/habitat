@@ -37,10 +37,10 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
         ui.para("")?;
 
         io::stdout().write(format!("Package Path   : {}\n", &src.display()).as_bytes())?;
-        io::stdout().write(format!("Origin         : {}\n", &ident.origin).as_bytes())?;
-        io::stdout().write(format!("Name           : {}\n", &ident.name).as_bytes())?;
-        io::stdout().write(format!("Version        : {}\n", &ident.version.unwrap()).as_bytes())?;
-        io::stdout().write(format!("Release        : {}\n", &ident.release.unwrap()).as_bytes())?;
+        io::stdout().write(format!("Origin         : {}\n", &ident.origin()).as_bytes())?;
+        io::stdout().write(format!("Name           : {}\n", &ident.name()).as_bytes())?;
+        io::stdout().write(format!("Version        : {}\n", &ident.version().unwrap()).as_bytes())?;
+        io::stdout().write(format!("Release        : {}\n", &ident.release().unwrap()).as_bytes())?;
     }
     Ok(())
 }

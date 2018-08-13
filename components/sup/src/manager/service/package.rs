@@ -120,14 +120,14 @@ impl Pkg {
     pub fn from_install(package: PackageInstall) -> Result<Self> {
         let (svc_user, svc_group) = get_user_and_group(&package)?;
         let pkg = Pkg {
-            svc_path: fs::svc_path(&package.ident.name),
-            svc_config_path: fs::svc_config_path(&package.ident.name),
-            svc_data_path: fs::svc_data_path(&package.ident.name),
-            svc_files_path: fs::svc_files_path(&package.ident.name),
-            svc_run: fs::svc_path(&package.ident.name).join("run"),
-            svc_static_path: fs::svc_static_path(&package.ident.name),
-            svc_var_path: fs::svc_var_path(&package.ident.name),
-            svc_pid_file: fs::svc_pid_file(&package.ident.name),
+            svc_path: fs::svc_path(&package.ident.name()),
+            svc_config_path: fs::svc_config_path(&package.ident.name()),
+            svc_data_path: fs::svc_data_path(&package.ident.name()),
+            svc_files_path: fs::svc_files_path(&package.ident.name()),
+            svc_run: fs::svc_path(&package.ident.name()).join("run"),
+            svc_static_path: fs::svc_static_path(&package.ident.name()),
+            svc_var_path: fs::svc_var_path(&package.ident.name()),
+            svc_pid_file: fs::svc_pid_file(&package.ident.name()),
             svc_user: svc_user,
             svc_group: svc_group,
             env: Env::new(&package)?,
@@ -142,16 +142,18 @@ impl Pkg {
                 .map_err(|e| sup_error!(Error::BadPackage(package.clone(), e)))?,
             path: package.installed_path,
             ident: package.ident.clone(),
-            origin: package.ident.origin.clone(),
-            name: package.ident.name.clone(),
+            origin: package.ident.origin().into(),
+            name: package.ident.name().into(),
             version: package
                 .ident
-                .version
-                .expect("No package version in PackageInstall"),
+                .version()
+                .expect("No package version in PackageInstall")
+                .into(),
             release: package
                 .ident
-                .release
-                .expect("No package release in PackageInstall"),
+                .release()
+                .expect("No package release in PackageInstall")
+                .into(),
         };
         Ok(pkg)
     }

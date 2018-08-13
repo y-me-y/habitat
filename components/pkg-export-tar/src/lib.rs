@@ -97,10 +97,10 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str) {
 fn format_tar_name(ident: PackageIdent) -> String {
     format!(
         "{}-{}-{}-{}.tar.gz",
-        ident.origin,
-        ident.name,
-        ident.version.unwrap(),
-        ident.release.unwrap()
+        ident.origin(),
+        ident.name(),
+        ident.version().unwrap(),
+        ident.release().unwrap()
     )
 }
 

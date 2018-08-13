@@ -137,7 +137,7 @@ mod test {
 
     use common::ui::{Coloring, UI};
     use hcore;
-    use hcore::package::{PackageIdent, PackageTarget};
+    use hcore::package::{PackageIdent, PackageTarget, PkgRelease, PkgVersion, ReleaseIdent};
     use tempdir::TempDir;
 
     use super::{binlink_all_in_pkg, start};
@@ -262,13 +262,22 @@ mod test {
     where
         P: AsRef<Path>,
     {
-        let mut ident = PackageIdent::from_str(ident).unwrap();
-        if let None = ident.version {
-            ident.version = Some("1.2.3".into());
-        }
-        if let None = ident.release {
-            ident.release = Some("21120102121200".into());
-        }
+        let ident = PackageIdent::from_str(ident).unwrap();
+        let ident = match ident {
+            PackageIdent::Release(_) => ident.clone(),
+            PackageIdent::Version(i) => PackageIdent::Release(ReleaseIdent::new(
+                i.origin(),
+                i.name(),
+                i.version(),
+                PkgRelease::new("1.2.3").unwrap(),
+            )),
+            PackageIdent::Name(i) => PackageIdent::Release(ReleaseIdent::new(
+                i.origin(),
+                i.name(),
+                PkgVersion::new("1.2.3").unwrap(),
+                PkgRelease::new("21120102121200").unwrap(),
+            )),
+        };
         let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
         write_file(prefix.join("IDENT"), &ident.to_string());
         write_file(prefix.join("TARGET"), PackageTarget::active_target());

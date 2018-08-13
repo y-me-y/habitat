@@ -736,7 +736,8 @@ two = 2
 
     /// Create a basic SvcMember struct for use in tests
     fn default_svc_member<'a>() -> SvcMember<'a> {
-        let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
+        let ident =
+            PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416")).unwrap();
         SvcMember {
             member_id: Cow::Owned("MEMBER_ID".into()),
             pkg: Cow::Owned(Some(ident)),
@@ -784,12 +785,13 @@ two = 2
             permanent: Cow::Owned(false),
         };
 
-        let ident = PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416"));
+        let ident =
+            PackageIdent::new("core", "test_pkg", Some("1.0.0"), Some("20180321150416")).unwrap();
 
         let deps = vec![
-            PackageIdent::new("test", "pkg1", Some("1.0.0"), Some("20180321150416")),
-            PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")),
-            PackageIdent::new("test", "pkg3", Some("3.0.0"), Some("20180321150416")),
+            PackageIdent::new("test", "pkg1", Some("1.0.0"), Some("20180321150416")).unwrap(),
+            PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")).unwrap(),
+            PackageIdent::new("test", "pkg3", Some("3.0.0"), Some("20180321150416")).unwrap(),
         ];
 
         let mut env_hash = HashMap::new();
@@ -806,10 +808,10 @@ two = 2
             // get origin, name, version, and release from it, rather
             // than storing each individually; I suspect that was just
             // for templating
-            origin: Cow::Owned(ident.origin.clone()),
-            name: Cow::Owned(ident.name.clone()),
-            version: Cow::Owned(ident.version.clone().unwrap()),
-            release: Cow::Owned(ident.release.clone().unwrap()),
+            origin: Cow::Owned(ident.origin().to_string()),
+            name: Cow::Owned(ident.name().to_string()),
+            version: Cow::Owned(ident.version().map(|v| v.to_string()).unwrap()),
+            release: Cow::Owned(ident.release().map(|r| r.to_string()).unwrap()),
             deps: Cow::Owned(deps),
             env: Cow::Owned(env_hash.into()),
             exposes: Cow::Owned(vec!["1234".into(), "8000".into(), "2112".into()]),

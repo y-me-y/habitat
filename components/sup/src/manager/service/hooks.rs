@@ -1277,10 +1277,10 @@ echo "The message is Hola Mundo"
 
         let pg_id = PackageIdent::new(
             "testing",
-            &service_group.service(),
+            service_group.service(),
             Some("1.0.0"),
             Some("20170712000000"),
-        );
+        ).unwrap();
 
         let pkg_install = PackageInstall::new_from_parts(
             pg_id.clone(),
@@ -1385,10 +1385,10 @@ echo "The message is Hello"
 
         let pg_id = PackageIdent::new(
             "testing",
-            &service_group.service(),
+            service_group.service(),
             Some("1.0.0"),
             Some("20170712000000"),
-        );
+        ).unwrap();
 
         let pkg_install = PackageInstall::new_from_parts(
             pg_id.clone(),

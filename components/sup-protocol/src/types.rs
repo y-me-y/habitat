@@ -231,18 +231,19 @@ impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
 
 impl From<package::PackageIdent> for PackageIdent {
     fn from(ident: package::PackageIdent) -> Self {
-        let mut proto = PackageIdent::default();
-        proto.origin = ident.origin;
-        proto.name = ident.name;
-        proto.version = ident.version;
-        proto.release = ident.release;
-        proto
+        PackageIdent {
+            origin: ident.origin().into(),
+            name: ident.name().into(),
+            version: ident.version().map(|v| v.into()),
+            release: ident.release().map(|r| r.into()),
+        }
     }
 }
 
 impl Into<package::PackageIdent> for PackageIdent {
     fn into(self) -> package::PackageIdent {
         package::PackageIdent::new(self.origin, self.name, self.version, self.release)
+            .expect("No validation errors are expected")
     }
 }
 

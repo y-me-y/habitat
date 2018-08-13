@@ -24,7 +24,7 @@ use std::str::FromStr;
 
 use hcore::error::Error as HCoreError;
 use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 
 use error::{Error, Result, SupError};
@@ -35,8 +35,7 @@ const SPEC_FILE_EXT: &'static str = "spec";
 
 static LOGKEY: &'static str = "CS";
 
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[serde(default)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CompositeSpec {
     /// The identifier of the composite as given when it was loaded.
     #[serde(
@@ -102,7 +101,7 @@ impl CompositeSpec {
     }
 
     pub fn file_name(&self) -> String {
-        format!("{}.{}", self.ident().name, SPEC_FILE_EXT)
+        format!("{}.{}", self.ident().name(), SPEC_FILE_EXT)
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
@@ -146,7 +145,7 @@ impl CompositeSpec {
     }
 
     fn to_toml_string(&self) -> Result<String> {
-        if self.ident() == &PackageIdent::default() {
+        if self.ident() == &PackageIdent::terribad_default() {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
         toml::to_string(self).map_err(|err| sup_error!(Error::ServiceSpecRender(err)))
@@ -160,7 +159,9 @@ impl FromStr for CompositeSpec {
         let spec: CompositeSpec =
             toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
 
-        if spec.ident == PackageIdent::default() || spec.package_ident == PackageIdent::default() {
+        if spec.ident == PackageIdent::terribad_default()
+            || spec.package_ident == PackageIdent::terribad_default()
+        {
             return Err(sup_error!(Error::MissingRequiredIdent));
         }
 

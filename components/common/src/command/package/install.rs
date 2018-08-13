@@ -52,7 +52,9 @@ use hcore::fs::cache_key_path;
 use hcore::fs::pkg_install_path;
 use hcore::package::install::INSTALL_TMP_PREFIX;
 use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
+use hcore::package::{
+    PackageArchive, PackageIdent, PackageInstall, PackageTarget, Release, ReleaseIdent, Version,
+};
 use hyper::status::StatusCode;
 
 use error::{Error, Result};
@@ -686,7 +688,8 @@ impl<'a> InstallTask<'a> {
                 RETRY_WAIT,
                 || self.fetch_artifact(ui, ident, token),
                 |res| res.is_ok(),
-            ).is_err()
+            )
+            .is_err()
             {
                 return Err(Error::DownloadFailed(format!(
                     "We tried {} times but could not download {}. Giving up.",
@@ -779,17 +782,26 @@ impl<'a> InstallTask<'a> {
 
     fn latest_cached_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
         let filename_glob = {
-            let mut ident = ident.clone();
-            if ident.version.is_none() {
-                ident.version = Some(String::from("?*"));
-            }
-            if ident.release.is_none() {
-                // NOTE fn: setting the field value of `release` to a string that isn't a set sized
-                // string of numeric characters might lead to issues later. Feels mildly like
-                // danger territory, but works today!
-                ident.release = Some(String::from("?*"));
-            }
-            ident.archive_name()?
+            let ident = match ident {
+                PackageIdent::Version(i) => ReleaseIdent::new(
+                    i.origin(),
+                    i.name(),
+                    i.version(),
+                    // Ensure this is a valid release string value
+                    Release::new("99999999999999")?,
+                ),
+                PackageIdent::Name(i) => ReleaseIdent::new(
+                    i.origin(),
+                    i.name(),
+                    // Ensure this is a valid version string value
+                    Version::new("99999999999999")?,
+                    // Ensure this is a valid release string value
+                    Release::new("99999999999999")?,
+                ),
+                PackageIdent::Release(i) => i.clone(),
+            };
+            // Replace any version/release stand-in values with a globbing expression
+            ident.archive_name().replace("99999999999999", "?*")
         };
         let glob_path = self.artifact_cache_path.join(filename_glob);
         let glob_path = glob_path.to_string_lossy();
@@ -806,7 +818,7 @@ impl<'a> InstallTask<'a> {
                 continue;
             }
             let artifact_ident = artifact_ident.unwrap();
-            if artifact_ident.origin == ident.origin && artifact_ident.name == ident.name {
+            if artifact_ident.origin() == ident.origin() && artifact_ident.name() == ident.name() {
                 if latest.is_empty() {
                     latest.push((artifact_ident, artifact));
                 } else {
@@ -1054,7 +1066,11 @@ impl<'a> InstallTask<'a> {
     ) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
-        let channels = match self.api_client.list_channels(ident.origin(), false) {
+        // TODO fn: update list_channels to take a `&PkgOrigin`, for now use strs as before
+        let channels = match self
+            .api_client
+            .list_channels(ident.origin().as_str(), false)
+        {
             Ok(channels) => channels,
             Err(e) => {
                 debug!("Failed to get channel list: {:?}", e);

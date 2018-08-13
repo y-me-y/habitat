@@ -235,7 +235,8 @@ fn upload_into_depot(
         ui.begin(format!("Promoting {} to channel '{}'", ident, channel_str))?;
 
         if channel_str != STABLE_CHANNEL && channel_str != UNSTABLE_CHANNEL {
-            match api_client.create_channel(&ident.origin, channel_str, token) {
+            // TODO fn: create_channel should take `&PkgOrigin`, until then, use strs as before
+            match api_client.create_channel(ident.origin().as_str(), channel_str, token) {
                 Ok(_) => (),
                 Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
                 Err(e) => return Err(Error::from(e)),
