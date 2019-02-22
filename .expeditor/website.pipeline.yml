@@ -1,7 +1,7 @@
 steps:
-  - label: "Deploy the website :pen:"
+  - label: "Updating website :pen:"
     command:
-      - echo "No op! Enable the pipeline"
+      - echo "I AM DOING AN UPDATE"
     agents:
       queue: 'default-privileged'
     plugins:

@@ -17,6 +17,9 @@ merge_actions:
   - built_in:update_changelog:
       ignore_labels:
         - "Expeditor: Exclude from Changelog"
+  # - trigger_pipeline:website:
+      # only_if_modified:
+      #   - www/*
 
 changelog:
   categories:
