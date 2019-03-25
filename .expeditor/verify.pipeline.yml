@@ -34,6 +34,16 @@ steps:
       automatic:
         limit: 1
 
+  - label: ":anka: test 10.12 (Sierra)"
+    agents:
+      queue: "anka-trial"
+    command: pwd
+    plugins:
+      - chef/anka#v0.1.1:
+          vm-name: "macos-omnibus-10.12"
+          wait-network: true
+
+
 #   - label: "[lint] :linux: :paperclip: clippy!"
 #     command:
 #       - sudo yum install gcc -y # install GCC since it's required for the cargo build
