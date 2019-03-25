@@ -37,7 +37,8 @@ steps:
   - label: ":anka: test 10.12 (Sierra)"
     agents:
       queue: "anka-trial"
-    command: ls -la /home
+    command:
+      - ls -la /
     plugins:
       - chef/anka#v0.1.1:
           vm-name: "macos-omnibus-10.12"
