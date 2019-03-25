@@ -39,7 +39,7 @@ steps:
       queue: "anka-trial"
     command:
       - ls -la /tmp/
-      - touch /tmp/fooooo
+      - touch /tmp/fooooo2
     plugins:
       - chef/anka#v0.1.1:
           vm-name: "macos-omnibus-10.12"
