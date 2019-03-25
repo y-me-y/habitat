@@ -39,7 +39,7 @@ steps:
       queue: "anka-trial"
     command:
       - ls -la /
-      - sudo touch /bla
+      - touch /bla
       - ls -la /
     plugins:
       - chef/anka#v0.1.1:
