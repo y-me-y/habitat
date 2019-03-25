@@ -7,6 +7,11 @@ github:
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
   changelog_file: "CHANGELOG.md"
+  # Release branch tells Expeditor, and thus buildkite, which branches are important
+  release_branch:
+    - master:
+        # Version constraint at this point is arbitrary but represents 1.0.0
+        version_constraint: 1*
 
 # Slack channel in Chef Software slack to send notifications about Expeditor actions
 slack:
@@ -23,12 +28,6 @@ changelog:
     - "X-change": "Behavioral Changes"
     - "X-feature": "New Features & Enhancements"
     - "X-fix": "Bug Fixes"
-
-github:
-  release_branch:
-    - master:
-        # Version constraint at this point is arbitrary but represents 1.0.0
-        version_constraint: 1*
 
 pipelines:
   - verify:
