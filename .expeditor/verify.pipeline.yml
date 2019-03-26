@@ -42,7 +42,7 @@ steps:
       - whoami
       - sudo echo bla
     plugins:
-      - chef/anka#v0.4.2:
+      - chef/anka#v0.4.0:
           vm-name: "macos-omnibus-10.12"
           wait-network: true
 
