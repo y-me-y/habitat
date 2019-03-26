@@ -29,6 +29,8 @@ cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:
 # TODO: fix this upstream, it looks like it's not saving correctly.
 # sudo chown -R buildkite-agent /home/buildkite-agent
 
+. _osx_test_setup.sh
+
 # TODO: these should be in a shared script?
 sudo hab pkg install core/bzip2
 sudo hab pkg install core/libarchive
@@ -37,7 +39,6 @@ sudo hab pkg install core/openssl
 sudo hab pkg install core/xz
 sudo hab pkg install core/zeromq
 sudo hab pkg install core/protobuf --binlink
-sudo hab pkg install core/rust
 
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
