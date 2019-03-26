@@ -38,11 +38,9 @@ steps:
     agents:
       queue: "anka-trial"
     command:
-      - ls -la /
-      - touch /bla
-      - ls -la /
+      - ls -la
     plugins:
-      - chef/anka#v0.1.1:
+      - chef/anka:
           vm-name: "macos-omnibus-10.12"
           wait-network: true
 
