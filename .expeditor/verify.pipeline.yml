@@ -39,6 +39,8 @@ steps:
       queue: "anka-trial"
     command:
       - ls -la
+      - whoami
+      - sudo echo bla
     plugins:
       - chef/anka:
           vm-name: "macos-omnibus-10.12"
