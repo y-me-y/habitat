@@ -39,7 +39,7 @@ steps:
       queue: "anka-trial"
     command: ./test/run_cargo_test.sh builder-api-client
     plugins:
-      - chef/anka#v0.4.0:
+      - chef/anka#tduffield/broader-bash:
           vm-name: "macos-omnibus-10.12"
           wait-network: true
 

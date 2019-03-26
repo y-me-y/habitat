@@ -29,7 +29,12 @@ cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:
 # TODO: fix this upstream, it looks like it's not saving correctly.
 # sudo chown -R buildkite-agent /home/buildkite-agent
 
-. ./test/_osx_test_setup.sh
+# . ./test/_osx_test_setup.sh
+
+export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+
+sudo hab pkg install core/rust
+
 
 # TODO: these should be in a shared script?
 sudo hab pkg install core/bzip2
