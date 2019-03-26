@@ -37,9 +37,7 @@ steps:
   - label: ":anka: test 10.12 (Sierra)"
     agents:
       queue: "anka-trial"
-    command: 
-      - sudo find / -name cert.pem #./test/run_cargo_test.sh builder-api-client
-      - which brew
+    command: ./test/run_cargo_test.sh builder-api-client
     plugins:
       - chef/anka#v0.4.0:
           vm-name: "macos-omnibus-10.12"
