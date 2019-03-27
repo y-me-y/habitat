@@ -32,7 +32,7 @@ cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:
 # . ./test/_osx_test_setup.sh
 
 export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-wget https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg
+curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
 sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
 
 # sudo hab pkg install core/rust
