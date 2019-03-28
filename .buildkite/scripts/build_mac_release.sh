@@ -10,6 +10,7 @@ export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
 curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
 sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
 rm mac-bootstrapper-1.0.0-latest.pkg
+export PATH="/opt/mac-bootstrapper/embedded/bin:$PATH"
 
 echo "--- Installing rust"
 curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -64,8 +65,7 @@ sudo cp ~/.hab/cache/keys/* /hab/cache/keys
 # # HAB_BLDR_CHANNEL variables that builds for other supported platforms
 # # need, because we're not pulling anything from Builder. Once we do,
 # # we'll need to make sure we pull from the right channels.
-sudo -E PATH="/opt/mac-bootstrapper/embedded/bin:${PATH}" \
-     bash \
+sudo -E bash \
      components/plan-build/bin/hab-plan-build.sh \
      components/hab
 # source results/last_build.env
