@@ -54,7 +54,7 @@ rustup default stable
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
-OPENSSL_DIR=/opt/mac-bootstrapper/embedded/lib
+OPENSSL_DIR=/opt/mac-bootstrapper/embedded
 export OPENSSL_STATIC=true # so the openssl crate builds statically
 export LIBZMQ_PREFIX
 LIBZMQ_PREFIX=/opt/mac-bootstrapper/embedded/lib
