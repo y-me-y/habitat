@@ -63,6 +63,23 @@ sudo cp ~/.hab/cache/keys/* /hab/cache/keys
 
 # echo "--- :habicat: :hammer_and_wrench: Building 'hab'"
 
+export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
+export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
+export OPENSSL_DIR # so the openssl crate knows what to build against
+OPENSSL_DIR=/opt/mac-bootstrapper/embedded
+export OPENSSL_STATIC=true # so the openssl crate builds statically
+export LIBZMQ_PREFIX
+LIBZMQ_PREFIX=/opt/mac-bootstrapper/embedded/lib
+# now include openssl and zeromq so thney exists in the runtime library path when cargo test is run
+export LD_LIBRARY_PATH
+LD_LIBRARY_PATH=/opt/mac-bootstrapper/embedded/lib
+# include these so that the cargo tests can bind to libarchive (which dynamically binds to xz, bzip, etc), openssl, and sodium at *runtime*
+export LIBRARY_PATH
+LIBRARY_PATH=/opt/mac-bootstrapper/embedded/lib
+# setup pkgconfig so the libarchive crate can use pkg-config to fine bzip2 and xz at *build* time
+export PKG_CONFIG_PATH
+PKG_CONFIG_PATH=/opt/mac-bootstrapper/embedded/lib/pkgconfig
+
 # # NOTE: This does *not* need the CI_OVERRIDE_CHANNEL /
 # # HAB_BLDR_CHANNEL variables that builds for other supported platforms
 # # need, because we're not pulling anything from Builder. Once we do,
