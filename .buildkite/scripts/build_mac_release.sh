@@ -38,7 +38,7 @@ brew install wget
 # hab_binary="$(command -v hab)"
 # import_keys
 
-hab origin key generate blargy
+hab origin key generate core
 
 # echo "--- :key: :arrow_right: :desktop_computer: Moving keys to system-wide location"
 # # TODO (CM): consider having `import_keys` install in the system directory instead
