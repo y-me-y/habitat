@@ -35,7 +35,7 @@ echo "--- :habicat: Using $(hab --version)"
 # hab_binary="$(command -v hab)"
 # import_keys
 
-hab origin key generate
+hab origin key generate blargy
 
 # echo "--- :key: :arrow_right: :desktop_computer: Moving keys to system-wide location"
 # # TODO (CM): consider having `import_keys` install in the system directory instead
