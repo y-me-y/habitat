@@ -22,6 +22,8 @@ echo "--- Installing hab"
 curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 echo "--- :habicat: Using $(hab --version)"
 
+echo "--- Installing wget from homebrew"
+brew install wget
 
 # echo "--- :beer: Updating Homebrew dependencies"
 # brew bundle install --verbose --file=.buildkite/Brewfile
