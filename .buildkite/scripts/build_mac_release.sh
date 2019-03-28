@@ -39,8 +39,8 @@ hab origin key generate blargy
 
 # echo "--- :key: :arrow_right: :desktop_computer: Moving keys to system-wide location"
 # # TODO (CM): consider having `import_keys` install in the system directory instead
-# sudo mkdir -p /hab/cache/keys
-# sudo cp ~/.hab/cache/keys/* /hab/cache/keys
+sudo mkdir -p /hab/cache/keys
+sudo cp ~/.hab/cache/keys/* /hab/cache/keys
 
 # echo "--- :rust: Installing Rust"
 # curl https://sh.rustup.rs -sSf | sh -s -- -y
@@ -64,10 +64,10 @@ hab origin key generate blargy
 # # HAB_BLDR_CHANNEL variables that builds for other supported platforms
 # # need, because we're not pulling anything from Builder. Once we do,
 # # we'll need to make sure we pull from the right channels.
-# sudo -E PATH="/opt/hab-bundle/embedded/bin:${PATH}" \
-#      "$(brew --prefix bash)/bin/bash" \
-#      components/plan-build/bin/hab-plan-build.sh \
-#      components/hab
+sudo -E PATH="/opt/mac-bootstrapper/embedded/bin:${PATH}" \
+     bash \
+     components/plan-build/bin/hab-plan-build.sh \
+     components/hab
 # source results/last_build.env
 
 # echo "--- :buildkite: Annotating build"
