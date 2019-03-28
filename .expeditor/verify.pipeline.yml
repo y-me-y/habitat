@@ -37,7 +37,7 @@ steps:
   - label: ":anka: test 10.12 (Sierra)"
     agents:
       queue: "anka-trial"
-    command: ./test/run_cargo_test.sh builder-api-client
+    command: .buildkite/scripts/build_mac_release.sh
     plugins:
       - chef/anka#tduffield/broader-bash:
           vm-name: "macos-omnibus-10.12"
