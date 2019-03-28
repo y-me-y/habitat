@@ -6,10 +6,10 @@ set -euo pipefail
 # source .buildkite/scripts/shared.sh
 
 echo "--- Installing Latest Habitat Toolchain Omnibus package"
-# export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-# curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
-# sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
-# rm mac-bootstrapper-1.0.0-latest.pkg
+export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
+sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
+rm mac-bootstrapper-1.0.0-latest.pkg
 export PATH="/opt/mac-bootstrapper/embedded/bin:$PATH"
 
 echo "--- Installing rust"
@@ -23,7 +23,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/
 echo "--- :habicat: Using $(hab --version)"
 
 echo "--- Installing wget from homebrew"
-# brew install wget
+brew install wget
 
 # echo "--- :beer: Updating Homebrew dependencies"
 # brew bundle install --verbose --file=.buildkite/Brewfile
