@@ -36,6 +36,7 @@ curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-lat
 sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
 
 curl https://sh.rustup.rs -sSf | sh -s -- -y
+. $HOME/.cargo/env
 rustup install stable
 rustup default stable
 
