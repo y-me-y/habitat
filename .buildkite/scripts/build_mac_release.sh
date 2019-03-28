@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-source .buildkite/env
-source .buildkite/scripts/shared.sh
+# source .buildkite/env
+# source .buildkite/scripts/shared.sh
 
 echo "--- Installing Latest Habitat Toolchain Omnibus package"
-export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
-sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
-rm mac-bootstrapper-1.0.0-latest.pkg
+# export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+# curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
+# sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
+# rm mac-bootstrapper-1.0.0-latest.pkg
 export PATH="/opt/mac-bootstrapper/embedded/bin:$PATH"
 
 echo "--- Installing rust"
@@ -23,7 +23,7 @@ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/
 echo "--- :habicat: Using $(hab --version)"
 
 echo "--- Installing wget from homebrew"
-brew install wget
+# brew install wget
 
 # echo "--- :beer: Updating Homebrew dependencies"
 # brew bundle install --verbose --file=.buildkite/Brewfile
@@ -40,8 +40,8 @@ brew install wget
 
 hab origin key generate core
 
-# echo "--- :key: :arrow_right: :desktop_computer: Moving keys to system-wide location"
-# # TODO (CM): consider having `import_keys` install in the system directory instead
+# # echo "--- :key: :arrow_right: :desktop_computer: Moving keys to system-wide location"
+# # # TODO (CM): consider having `import_keys` install in the system directory instead
 sudo mkdir -p /hab/cache/keys
 sudo cp ~/.hab/cache/keys/* /hab/cache/keys
 
@@ -61,7 +61,7 @@ sudo cp ~/.hab/cache/keys/* /hab/cache/keys
 # sudo rm -Rf /hab/cache/src
 # rm -Rf "${HOME}/.cargo/{git,registry}"
 
-# echo "--- :habicat: :hammer_and_wrench: Building 'hab'"
+echo "--- :habicat: :hammer_and_wrench: Building 'hab'"
 
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
