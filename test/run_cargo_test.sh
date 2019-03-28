@@ -35,9 +35,9 @@ export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
 curl https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg -o mac-bootstrapper-1.0.0-latest.pkg
 sudo installer -pkg mac-bootstrapper-1.0.0-latest.pkg -target /
 
-curl https://sh.rustup.rs -sSf | sh
-rustup install stable -y
-rustup default stable -y
+curl https://sh.rustup.rs -sSf | sh - -y
+rustup install stable
+rustup default stable
 
 # sudo hab pkg install core/rust
 
