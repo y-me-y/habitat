@@ -58,10 +58,15 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
 
 #[test]
 fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed() {
+    env_logger::try_init().ok();
     let mut net = btest::SwimNet::new(6);
+    debug!("mesh");
     net.mesh();
+    debug!("wait for 0");
     assert_wait_for_health_of!(net, 0, Health::Alive);
+    debug!("partition");
     net.partition(0..3, 3..6);
+    debug!("wait for the rest");
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Confirmed);
 }
 
