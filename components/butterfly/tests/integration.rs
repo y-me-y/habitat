@@ -21,6 +21,7 @@ mod encryption;
 mod rumor;
 
 use habitat_butterfly::member::Health;
+use log
 
 #[test]
 fn two_members_meshed_confirm_one_member() {
