@@ -20,7 +20,7 @@ done
 [ -z "${features:-}" ] && features_string="" || features_string="--features ${features}"
 
 component=${1?component argument required}
-cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:-}"
+cargo_test_command="RUST_LOG=debug,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core::reactor=info,tokio_reactor=info cargo test ${features_string} -- --nocapture ${test_options:-}"
 
 # TODO: fix this upstream so it's already on the path and set up
 export RUSTUP_HOME=/opt/rust
@@ -57,7 +57,7 @@ PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path co
 # Set testing filesystem root
 export TESTING_FS_ROOT
 TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
-export RUST_LOG=debug
+export RUST_LOG=debug,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core::reactor=info,tokio_reactor=info
 echo "--- Running cargo test on $component with command: '$cargo_test_command'"
 cd "components/$component"
 $cargo_test_command
