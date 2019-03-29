@@ -16,12 +16,13 @@
 extern crate habitat_butterfly;
 #[macro_use]
 extern crate habitat_butterfly_test as btest;
+#[macro_use]
+extern crate log;
 
 mod encryption;
 mod rumor;
 
 use habitat_butterfly::member::Health;
-use log;
 
 #[test]
 fn two_members_meshed_confirm_one_member() {
