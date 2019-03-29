@@ -104,6 +104,7 @@ fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
 
 #[test]
 fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
+    env_logger::try_init().ok();
     let mut net = btest::SwimNet::new(6);
     net[0].member
           .write()
@@ -113,14 +114,22 @@ fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
           .write()
           .expect("Member lock is poisoned")
           .set_persistent();
+    debug!("connect 1");
     net.connect(0, 1);
+    debug!("connect 2");
     net.connect(1, 2);
+    debug!("connect 3");
     net.connect(2, 3);
+    debug!("connect 4");
     net.connect(3, 4);
+    debug!("connect 5");
     net.connect(4, 5);
+    debug!("connected!!!");
     assert_wait_for_health_of!(net, [0..6, 0..6], Health::Alive);
+    debug!("partition 1");
     net.partition(0..3, 3..6);
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Confirmed);
+    debug!("unpartition 1");
     net.unpartition(0..3, 3..6);
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Alive);
 }
