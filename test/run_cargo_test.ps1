@@ -64,7 +64,7 @@ $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$z
 # Make sure protoc is on the path, we also need to make sure the DLLs (in \bin) are on the path,
 # because windows library pathing is weird and terrifying.
 $env:Path="$env:Path;$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$libsodiumDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"
-
+$env:RUST_LOG="debug,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core::reactor=info,tokio_reactor=info"
 Write-Host "--- Running cargo test on $Component with command: '$CargoTestCommand'"
 cd components/$Component
 Invoke-Expression $CargoTestCommand
