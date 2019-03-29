@@ -57,6 +57,7 @@ PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path co
 # Set testing filesystem root
 export TESTING_FS_ROOT
 TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
+export RUST_LOG=debug
 echo "--- Running cargo test on $component with command: '$cargo_test_command'"
 cd "components/$component"
 $cargo_test_command
