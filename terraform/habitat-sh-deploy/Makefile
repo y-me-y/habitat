@@ -24,7 +24,7 @@ remote-state: init
 	# environments.
 
 	rm -rf .terraform && \
-	terraform init -backend-config="key=habitat-habitat-sh/$(TF_STATE)"
+	terraform init -backend-config="key=habitat-sh/$(TF_STATE)"
 
 plan: remote-state
 	terraform plan -var-file=vars/$(TF_VARS).tfvars

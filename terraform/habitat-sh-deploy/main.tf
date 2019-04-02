@@ -16,18 +16,51 @@ provider "aws" {
 #   }
 # }
 
-module "habitat_sh_site" {
-  source    = "git@github.com:chef/es-terraform.git//modules/cd_hugo_static_site"
-  subdomain = "habitat-sh-${var.dns_suffix}"
+resource "null_resource" "build_habitat_sh" {
+  triggers = {
+    always_do = "${uuid()}"
+  }
 
-  site_dir     = "./build"
-  fastly_fqdn = "${var.fastly_fqdn}"
+  provisioner "local-exec" {
+    command = "make build"
+    working_dir = "../../www"
+  }
 
-  # build_command = "BUILDER_WEB_URL='https://bldr.acceptance.habitat.sh' GITHUB_APP_URL='https://github.com/apps/habitat-builder-acceptance' make build"
+  provisioner "local-exec" {
+    command = "make deploy"
+    working_dir = "../../www"
+  }
 
-  build_command = "pwd"
+  # provisioner "local-exec" {
+  #   command = "chmod +x /tmp/chef-automate"
+  # }
 
-  # AWS Tags
-  tag_dept    = "CoreEng"
-  tag_contact = "releng"
+  # provisioner "local-exec" {
+  #   command = "/tmp/chef-automate airgap bundle create /tmp/automate.aib --channel ${var.channel}"
+  # }
 }
+
+module "habitat_sh_site" {
+  source    = "git@github.com:chef/es-terraform.git//modules/cd_s3_website"
+  subdomain = "habitat-sh-${var.dns_suffix}"
+  create = "true"
+  # create    = "${var.environment == "delivered" ? "true" : "false"}"
+}
+
+
+
+# module "habitat_sh_site" {
+#   source    = "git@github.com:chef/es-terraform.git//modules/cd_hugo_static_site"
+#   subdomain = "habitat-sh-${var.dns_suffix}"
+
+#   site_dir     = "./build"
+#   fastly_fqdn = "${var.fastly_fqdn}"
+
+#   # build_command = "BUILDER_WEB_URL='https://bldr.acceptance.habitat.sh' GITHUB_APP_URL='https://github.com/apps/habitat-builder-acceptance' make build"
+
+#   build_command = "pwd"
+
+#   # AWS Tags
+#   tag_dept    = "CoreEng"
+#   tag_contact = "releng"
+# }
