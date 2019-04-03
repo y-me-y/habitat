@@ -1,7 +1,7 @@
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - ./expeditor/scripts/deploy_website.sh
+      - .expeditor/scripts/deploy_website.sh
     timeout_in_minutes: 10
     retry:
       automatic:
