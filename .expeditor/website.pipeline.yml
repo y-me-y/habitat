@@ -8,3 +8,4 @@ steps:
         limit: 1
     expeditor:
       executor:
+        docker:
