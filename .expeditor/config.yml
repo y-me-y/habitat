@@ -37,4 +37,4 @@ pipelines:
   - website:
       description: Deploy the website
       definition: .expeditor/website.pipeline.yml
-      trigger: pull_request
+      # trigger: pull_request
