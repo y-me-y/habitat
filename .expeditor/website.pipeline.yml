@@ -1,11 +1,14 @@
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - cd terraform/habitat-sh-deploy && make apply
+      - ./expeditor/scripts/deploy_website.sh
     timeout_in_minutes: 10
     retry:
       automatic:
         limit: 1
     expeditor:
+      accounts:
+        - aws/chef-cd
+        - github
       executor:
         docker:
