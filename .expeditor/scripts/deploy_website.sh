@@ -17,7 +17,7 @@ set -euo pipefail
 # fi
 
 # Hardcode to acceptance for now.
-export TF_ENVIRONMENT=acceptance
+export CHANNEL=acceptance
 
 # export LOGS_URL="$BUILDKITE_BUILD_URL"
 
