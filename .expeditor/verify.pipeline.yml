@@ -216,8 +216,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: bintray-publish"
     command:
@@ -227,8 +227,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: hab"
     command:
@@ -238,8 +238,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: launcher"
     command:
@@ -249,8 +249,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-aci"
     command:
@@ -260,8 +260,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-cfize"
     command:
@@ -271,8 +271,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-dockerize"
     command:
@@ -282,8 +282,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-export-docker"
     command:
@@ -293,8 +293,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-export-helm"
     command:
@@ -304,8 +304,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-export-kubernetes"
     command:
@@ -315,8 +315,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-export-tar"
     command:
@@ -326,8 +326,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: pkg-mesosize"
     command:
@@ -337,8 +337,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: plan-build"
     command:
@@ -348,8 +348,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: studio"
     command:
@@ -359,8 +359,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
 
   - label: "[build] :linux: sup"
     command:
@@ -370,5 +370,5 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
-          privileged: true
+        linux:
+          single-use: true
