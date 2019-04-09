@@ -217,6 +217,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: bintray-publish"
     command:
@@ -227,6 +228,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: hab"
     command:
@@ -237,6 +239,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: launcher"
     command:
@@ -247,6 +250,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-aci"
     command:
@@ -257,6 +261,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-cfize"
     command:
@@ -267,6 +272,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-dockerize"
     command:
@@ -277,6 +283,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-export-docker"
     command:
@@ -287,6 +294,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-export-helm"
     command:
@@ -297,6 +305,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-export-kubernetes"
     command:
@@ -307,6 +316,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-export-tar"
     command:
@@ -317,6 +327,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: pkg-mesosize"
     command:
@@ -327,6 +338,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: plan-build"
     command:
@@ -337,6 +349,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: studio"
     command:
@@ -347,6 +360,7 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
 
   - label: "[build] :linux: sup"
     command:
@@ -357,3 +371,4 @@ steps:
     expeditor:
       executor:
         docker:
+          privileged: true
