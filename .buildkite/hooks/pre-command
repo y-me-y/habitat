@@ -3,6 +3,8 @@
 set -euo pipefail
 shopt -s extglob
 
+export SECRETS_PLUGIN_ENABLED=0
+
 if [[ "${BUILDKITE_AGENT_META_DATA_QUEUE}" == "habitat-release" ]]; then
     echo "--- Cleaning up... removing newer hab-studios"
     # Here's the deal: hab will use whatever the latest installed

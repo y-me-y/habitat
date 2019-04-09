@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -euo pipefail
-
-export SECRETS_PLUGIN_ENABLED=0
