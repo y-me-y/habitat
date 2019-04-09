@@ -61,6 +61,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux"
   
   - label: ":linux: :two: :habicat: core/hab"
+    skip: no kernel2 plz
     command: .buildkite/scripts/build_component.sh hab
     agents:
       queue: habitat-release
@@ -68,6 +69,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab"
+    skip: no windows plz
     command: .buildkite/scripts/build_component.ps1 -Component hab
     agents:
       queue: default-windows-privileged
@@ -85,6 +87,7 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - label: ":mac: :habicat: core/hab"
+    skip: no macs plz
     command: .buildkite/scripts/build_mac_release.sh
     concurrency_group: "habitat/release/macos"
     # We only want to run one build at a time because these are long-lived VMs and the builds
