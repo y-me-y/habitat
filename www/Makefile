@@ -16,17 +16,14 @@ sync: build check-env
 purge_cache: check-env
 	curl -H "Fastly-Key: ${FASTLY_API_KEY}" -X POST "https://api.fastly.com/service/${FASTLY_SERVICE_KEY}/purge_all"
 
-prep:
-	sed -i'' '/^Disallow:/ s/$$/ \//' build/robots.txt
-	zip -r website.zip build
-
 deploy: build sync purge_cache
 
-acceptance: build prep
-	curl -H "Content-Type: application/zip" \
-    -H "Authorization: Bearer $(NETLIFYKEY)" \
-    --data-binary "@website.zip" \
-    --url "https://api.netlify.com/api/v1/sites/habitat-acceptance.netlify.com/deploys"
+preprod: build
+ifndef CHANNEL
+	$(error CHANNEL is undefined)
+endif
+	sed -i'' '/^Disallow:/ s/$$/ \//' build/robots.txt
+	cd ../terraform/habitat-sh-deploy && make plan
 
 cli_docs:
 	hab studio run "hab pkg install core/hab-studio && \

@@ -12,3 +12,5 @@ steps:
         - github
       executor:
         docker:
+          environment:
+            - CHANNEL="dev"

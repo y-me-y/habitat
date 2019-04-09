@@ -14,7 +14,7 @@ module "habitat_sh_site" {
 
   site_dir      = "../../www"
   content_dir   = "build"
-  build_command = "BUILDER_WEB_URL='https://bldr.acceptance.habitat.sh' GITHUB_APP_URL='https://github.com/apps/habitat-builder-acceptance' make build"
+  build_command = "" # we built this already
 
   fastly_fqdn = "${var.fastly_fqdn}"
   

@@ -17,9 +17,9 @@ set -euo pipefail
 # fi
 
 # Hardcode to acceptance for now.
-export CHANNEL=acceptance
+# export CHANNEL=$
 
 # export LOGS_URL="$BUILDKITE_BUILD_URL"
 
-cd terraform/habitat-sh-deploy
-make apply
+cd www
+make preprod
