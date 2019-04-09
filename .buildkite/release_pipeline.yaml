@@ -1,9 +1,3 @@
-expeditor:
-  secrets:
-    HAB_AUTH_TOKEN:
-      account: habitat/chef-ci
-      field: auth_token
-
 steps:
 
   # Set up build metadata
@@ -26,6 +20,11 @@ steps:
     command: .buildkite/scripts/destroy_release_channel.sh || /bin/true
     agents:
       queue: habitat-release
+    expeditor:
+      secrets:
+        HAB_AUTH_TOKEN:
+          account: habitat/chef-ci
+          field: auth_token
 
   - wait
 
