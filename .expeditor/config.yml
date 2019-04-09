@@ -39,6 +39,7 @@ pipelines:
   - verify:
       # Public verification tests
       description: Pull Request validation tests
+      public: true
   # - verify_private:
   #     # Private verification tests
   #     description: Pull Request validation tests
