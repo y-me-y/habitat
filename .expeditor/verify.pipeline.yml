@@ -218,6 +218,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: bintray-publish"
     command:
@@ -229,6 +230,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: hab"
     command:
@@ -240,6 +242,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: launcher"
     command:
@@ -251,6 +254,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-aci"
     command:
@@ -262,6 +266,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-cfize"
     command:
@@ -273,6 +278,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-dockerize"
     command:
@@ -284,6 +290,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-export-docker"
     command:
@@ -295,6 +302,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-export-helm"
     command:
@@ -306,6 +314,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-export-kubernetes"
     command:
@@ -317,6 +326,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-export-tar"
     command:
@@ -328,6 +338,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: pkg-mesosize"
     command:
@@ -339,6 +350,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: plan-build"
     command:
@@ -350,6 +362,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: studio"
     command:
@@ -361,6 +374,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   - label: "[build] :linux: sup"
     command:
@@ -372,3 +386,4 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
