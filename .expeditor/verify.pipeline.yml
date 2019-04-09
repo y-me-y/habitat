@@ -41,7 +41,8 @@ steps:
         limit: 1
     expeditor:
       executor:
-        docker:
+        linux:
+          single-use: true
 
   # - label: "[lint] :windows: :paperclip: clippy!"
   #   command:

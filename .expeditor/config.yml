@@ -37,8 +37,11 @@ github:
 
 pipelines:
   - verify:
-      # Adding a comment to do a thing
+      # Public verification tests
       description: Pull Request validation tests
+  # - verify_private:
+  #     # Private verification tests
+  #     description: Pull Request validation tests
   - website:
       description: Deploy the website
       definition: .expeditor/website.pipeline.yml
