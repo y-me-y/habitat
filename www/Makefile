@@ -23,7 +23,7 @@ ifndef CHANNEL
 	$(error CHANNEL is undefined)
 endif
 	sed -i'' '/^Disallow:/ s/$$/ \//' build/robots.txt
-	cd ../terraform/habitat-sh-deploy && make plan
+	cd ../terraform/habitat-sh-deploy && make apply
 
 cli_docs:
 	hab studio run "hab pkg install core/hab-studio && \
