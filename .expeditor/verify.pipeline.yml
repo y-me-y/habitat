@@ -241,7 +241,7 @@ steps:
   - label: "[build] :linux: launcher"
     command:
       - ./support/ci/build_component.sh launcher
-=    retry:
+    retry:
       automatic:
         limit: 1
     expeditor:
