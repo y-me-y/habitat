@@ -44,3 +44,316 @@ steps:
         linux:
           single-use: true
           privileged: true
+
+#######################################################################
+# Unit Tests - Linux!
+#######################################################################
+
+  - label: "[unit] :linux: builder-api-client"
+    command:
+      - ./test/run_cargo_test.sh builder-api-client
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: butterfly"
+    command:
+      - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: common"
+    command:
+      - ./test/run_cargo_test.sh common
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: hab"
+    command:
+      - ./test/run_cargo_test.sh hab
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: launcher-client"
+    command:
+      - ./test/run_cargo_test.sh launcher-client
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: launcher-protocol"
+    command:
+      - ./test/run_cargo_test.sh launcher-protocol
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: pkg-export-docker"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-docker
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: pkg-export-helm"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-helm
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: pkg-export-kubernetes"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-kubernetes
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: pkg-export-tar"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-tar
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: sup"
+    command:
+      - ./test/run_cargo_test.sh --features "ignore_inconsistent_tests ignore_integration_tests"  sup
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit][inconsistent] :linux: sup"
+    command:
+      - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 10
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: sup-client"
+    command:
+      - ./test/run_cargo_test.sh sup-client
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[unit] :linux: sup-protocol"
+    command:
+      - ./test/run_cargo_test.sh sup-protocol
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+#######################################################################
+# Things that have no tests but should be built to make sure they
+# still build. - Linux
+#######################################################################
+
+  - label: "[build] :linux: backline"
+    command:
+      - ./support/ci/build_component.sh backline
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: bintray-publish"
+    command:
+      - ./support/ci/build_component.sh bintray-publish
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: hab"
+    command:
+      - ./support/ci/build_component.sh hab
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: launcher"
+    command:
+      - ./support/ci/build_component.sh launcher
+=    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-aci"
+    command:
+      - ./support/ci/build_component.sh pkg-aci
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-cfize"
+    command:
+      - ./support/ci/build_component.sh pkg-cfize
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-dockerize"
+    command:
+      - ./support/ci/build_component.sh pkg-dockerize
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-export-docker"
+    command:
+      - ./support/ci/build_component.sh pkg-export-docker
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-export-helm"
+    command:
+      - ./support/ci/build_component.sh pkg-export-helm
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-export-kubernetes"
+    command:
+      - ./support/ci/build_component.sh pkg-export-kubernetes
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-export-tar"
+    command:
+      - ./support/ci/build_component.sh pkg-export-tar
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: pkg-mesosize"
+    command:
+      - ./support/ci/build_component.sh pkg-mesosize
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: plan-build"
+    command:
+      - ./support/ci/build_component.sh plan-build
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: studio"
+    command:
+      - ./support/ci/build_component.sh studio
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
+
+  - label: "[build] :linux: sup"
+    command:
+      - ./support/ci/build_component.sh sup
+    retry:
+      automatic:
+        limit: 1
+    expeditor:
+      executor:
+        docker:
