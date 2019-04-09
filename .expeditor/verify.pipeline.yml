@@ -43,6 +43,7 @@ steps:
       executor:
         linux:
           single-use: true
+          privileged: true
 
   # - label: "[lint] :windows: :paperclip: clippy!"
   #   command:
