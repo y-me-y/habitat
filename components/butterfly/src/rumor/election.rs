@@ -65,8 +65,13 @@ pub struct Election {
 impl fmt::Display for Election {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "Election m/{} sg/{}, t/{}, su/{}, st/{:?}",
-               self.member_id, self.service_group, self.term, self.suitability, self.status)
+               "Election m/{} sg/{}, t/{}, su/{}, st/{:?} ttl/{}",
+               self.member_id,
+               self.service_group,
+               self.term,
+               self.suitability,
+               self.status,
+               self.ttl)
     }
 }
 
@@ -246,12 +251,13 @@ pub struct ElectionUpdate(Election);
 impl fmt::Display for ElectionUpdate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?}",
+               "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?} ttl/{}",
                self.0.member_id,
                self.0.service_group,
                self.0.term,
                self.0.suitability,
-               self.0.status)
+               self.0.status,
+               self.0.ttl)
     }
 }
 

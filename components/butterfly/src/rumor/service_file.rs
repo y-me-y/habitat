@@ -52,8 +52,8 @@ pub struct ServiceFile {
 impl fmt::Display for ServiceFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "ServiceFile i/{} m/{} sg/{} fn/{}",
-               self.incarnation, self.from_id, self.service_group, self.filename)
+               "ServiceFile i/{} m/{} sg/{} fn/{} ttl/{}",
+               self.incarnation, self.from_id, self.service_group, self.filename, self.ttl)
     }
 }
 

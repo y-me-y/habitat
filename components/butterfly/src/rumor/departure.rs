@@ -42,7 +42,7 @@ pub struct Departure {
 
 impl fmt::Display for Departure {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Departure m/{}", self.member_id)
+        write!(f, "Departure m/{} ttl/{}", self.member_id, self.ttl)
     }
 }
 

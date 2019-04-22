@@ -41,6 +41,7 @@ use serde::{ser::{SerializeMap,
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
+          fmt,
           ops::Deref,
           result,
           sync::{atomic::{AtomicUsize,
@@ -88,6 +89,15 @@ impl From<RumorKind> for RumorPayload {
 pub struct RumorLifespan {
     pub expiration:   DateTime<Utc>,
     pub last_refresh: DateTime<Utc>,
+}
+
+impl fmt::Display for RumorLifespan {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f,
+               "RumorLifespan e/{} lr/{}",
+               self.expiration.to_rfc3339(),
+               self.last_refresh.to_rfc3339())
+    }
 }
 
 impl RumorLifespan {

@@ -53,8 +53,8 @@ pub struct ServiceConfig {
 impl fmt::Display for ServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "ServiceConfig i/{} m/{} sg/{}",
-               self.incarnation, self.from_id, self.service_group)
+               "ServiceConfig i/{} m/{} sg/{} ttl/{}",
+               self.incarnation, self.from_id, self.service_group, self.ttl)
     }
 }
 
