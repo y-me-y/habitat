@@ -2,6 +2,8 @@ version: "3.4"
 
 x-service: &srv
   image: hab-sup-network
+  networks:
+    - sup
   volumes:
     - type: bind
       source: ./CTL_SECRET
@@ -16,7 +18,7 @@ x-service: &srv
       target: /hab/pkgs
       read_only: false
     - type: bind
-      source: "/${HOME}/habitat/target/debug/hab"
+      source: "${HOME}/habitat/target/debug/hab"
       target: /bin/hab
       read_only: false
     - type: bind
@@ -27,18 +29,23 @@ x-service: &srv
       source: "${HOME}/habitat/target/debug/hab-launch"
       target: /bin/hab-launch
       read_only: false
+    - type: bind
+      source: "${HOME}/habitat/target/debug/rst-reader"
+      target: /bin/rst-reader
+      read_only: false
   environment:
     - HAB_NONINTERACTIVE=1
     - HAB_SUP_BINARY=/bin/hab-sup
     - HAB_LAUNCH_BINARY=/bin/hab-launch
     - HAB_LAUNCH_NO_SUP_VERSION_CHECK=1
-    - RUST_LOG=info,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core=info
+    - RUST_LOG=debug,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core=info
     - PATH=/bin:/usr/bin
   entrypoint: /bin/hab
 
 services:
   bastion:
     <<: *srv
+    container_name: bastion
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
@@ -50,5 +57,8 @@ services:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
       - "--peer=bastion"
-    links:
-      - "bastion"
+    depends_on:
+      - bastion
+
+networks:
+  sup:
