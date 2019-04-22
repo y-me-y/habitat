@@ -1152,9 +1152,11 @@ impl<'a> Serialize for ServerProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rumor::election::Term;
+    use crate::rumor::{election::Term,
+                       RumorLifespan};
     use habitat_core::service::ServiceGroup;
     use std::str::FromStr;
+    use uuid::Uuid;
 
     fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool { move |_: &str| val }
 
@@ -1165,7 +1167,9 @@ mod tests {
                   initialized:   Default::default(),
                   pkg:           Default::default(),
                   cfg:           Default::default(),
-                  sys:           Default::default(), }
+                  sys:           Default::default(),
+                  uuid:          Uuid::new_v4().to_simple_ref().to_string(),
+                  ttl:           RumorLifespan::service(), }
     }
 
     #[test]

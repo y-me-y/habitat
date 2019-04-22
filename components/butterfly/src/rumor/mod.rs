@@ -621,32 +621,39 @@ impl From<RumorEnvelope> for ProtoRumor {
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
-
     use crate::{error::Result,
                 protocol::{self,
                            newscast},
                 rumor::{Rumor,
                         RumorKey,
+                        RumorLifespan,
                         RumorType}};
+    use chrono::Duration;
+    use uuid::Uuid;
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
-        pub id:  String,
-        pub key: String,
+        pub id:   String,
+        pub key:  String,
+        pub uuid: String,
+        pub ttl:  RumorLifespan,
     }
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
-                        key: String::from("fakerton"), }
+            FakeRumor { id:   Uuid::new_v4().to_simple_ref().to_string(),
+                        key:  String::from("fakerton"),
+                        uuid: Uuid::new_v4().to_simple_ref().to_string(),
+                        ttl:  RumorLifespan::new(Duration::seconds(5)), }
         }
     }
 
     #[derive(Clone, Debug, Serialize)]
     struct TrumpRumor {
-        pub id:  String,
-        pub key: String,
+        pub id:   String,
+        pub key:  String,
+        pub uuid: String,
+        pub ttl:  RumorLifespan,
     }
 
     impl Rumor for FakeRumor {
@@ -657,6 +664,14 @@ mod tests {
         fn id(&self) -> &str { &self.id }
 
         fn merge(&mut self, mut _other: FakeRumor) -> bool { false }
+
+        fn uuid(&self) -> &str { &self.uuid }
+
+        fn lifespan(&self) -> &RumorLifespan { &self.ttl }
+
+        fn lifespan_as_mut(&mut self) -> &mut RumorLifespan { &mut self.ttl }
+
+        fn ttl() -> Duration { Duration::seconds(5) }
     }
 
     impl protocol::FromProto<newscast::Rumor> for FakeRumor {
@@ -677,8 +692,10 @@ mod tests {
 
     impl Default for TrumpRumor {
         fn default() -> TrumpRumor {
-            TrumpRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
-                         key: String::from("fakerton"), }
+            TrumpRumor { id:   Uuid::new_v4().to_simple_ref().to_string(),
+                         key:  String::from("fakerton"),
+                         uuid: Uuid::new_v4().to_simple_ref().to_string(),
+                         ttl:  RumorLifespan::new(Duration::seconds(5)), }
         }
     }
 
@@ -690,6 +707,14 @@ mod tests {
         fn id(&self) -> &str { &self.id }
 
         fn merge(&mut self, mut _other: TrumpRumor) -> bool { false }
+
+        fn uuid(&self) -> &str { &self.uuid }
+
+        fn lifespan(&self) -> &RumorLifespan { &self.ttl }
+
+        fn lifespan_as_mut(&mut self) -> &mut RumorLifespan { &mut self.ttl }
+
+        fn ttl() -> Duration { Duration::seconds(5) }
     }
 
     impl protocol::FromProto<newscast::Rumor> for TrumpRumor {

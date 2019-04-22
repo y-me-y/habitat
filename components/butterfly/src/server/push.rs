@@ -88,7 +88,7 @@ impl Push {
                     check_list.len()
                 };
                 let next_gossip = self.timing.gossip_timeout();
-                dbg!(&check_list);
+                // dbg!(&check_list);
                 for member in check_list.drain(0..drain_length) {
                     if self.server.is_member_blocked(&member.id) {
                         debug!("Not sending rumors to {} - it is blocked", member.id);
@@ -102,7 +102,7 @@ impl Push {
                        && !self.server.member_list.persistent_and_confirmed(&member)
                     {
                         let rumors = self.server.keys_for_live_rumors();
-                        dbg!(&rumors);
+                        // dbg!(&rumors);
                         if !rumors.is_empty() {
                             let sc = self.server.clone();
 
