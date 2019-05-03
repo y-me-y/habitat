@@ -88,7 +88,6 @@ impl Push {
                     check_list.len()
                 };
                 let next_gossip = self.timing.gossip_timeout();
-                // dbg!(&check_list);
                 for member in check_list.drain(0..drain_length) {
                     if self.server.is_member_blocked(&member.id) {
                         debug!("Not sending rumors to {} - it is blocked", member.id);

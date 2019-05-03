@@ -689,6 +689,13 @@ impl Server {
         }
     }
 
+    /// Mark a service for deletion. This means butterfly will stop sending out rumors for this
+    /// service, meaning it will eventually expire and get removed on all the supervisors in the
+    /// network.
+    pub fn mark_service_for_deletion(&self, service: Service) {
+        self.service_store.expire(service.key(), service.id());
+    }
+
     /// Insert a service config rumor into the service store.
     pub fn insert_service_config(&self, service_config: ServiceConfig) {
         self.service_config_store.insert(service_config);
@@ -1091,7 +1098,8 @@ impl fmt::Display for Server {
 fn persist_loop(server: &Server) {
     // TODO: Make this configurable with EnvConfig. That trait needs to move
     // to common or core first
-    const MIN_LOOP_PERIOD: Duration = Duration::from_secs(30);
+    // TODO JB: don't leave this as 5 seconds. for testing only
+    const MIN_LOOP_PERIOD: Duration = Duration::from_secs(5);
 
     loop {
         let before_persist = Instant::now();

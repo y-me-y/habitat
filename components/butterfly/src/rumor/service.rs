@@ -42,7 +42,7 @@ impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
                "Service i/{} m/{} sg/{} ttl/{}",
-               self.incarnation, self.member_id, self.service_group, self.ttl)
+               self.incarnation, self.member_id, self.service_group, self.ttl,)
     }
 }
 
@@ -193,7 +193,7 @@ impl Rumor for Service {
     fn lifespan_as_mut(&mut self) -> &mut RumorLifespan { &mut self.ttl }
 
     // TODO JB: don't leave this at this value - for testing only
-    fn ttl() -> Duration { Duration::minutes(1) }
+    fn ttl() -> Duration { Duration::seconds(20) }
 }
 
 #[derive(Debug, Clone, Serialize)]

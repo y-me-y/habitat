@@ -1,17 +1,3 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 pub mod service;
 #[macro_use]
 mod debug;
@@ -1027,19 +1013,7 @@ impl Manager {
 
     // Creates a rumor for the specified service.
     fn gossip_latest_service_rumor(&self, service: &Service) {
-        let incarnation = if let Some(rumor) = self.butterfly
-                                                   .service_store
-                                                   .list
-                                                   .read()
-                                                   .expect("Rumor store lock poisoned")
-                                                   .get(&*service.service_group)
-                                                   .and_then(|r| r.get(&self.sys.member_id))
-        {
-            rumor.clone().incarnation + 1
-        } else {
-            1
-        };
-
+        let incarnation = self.incarnation_for_service(service);
         self.butterfly.insert_service(service.to_rumor(incarnation));
     }
 
@@ -1160,6 +1134,9 @@ impl Manager {
     /// already (see, e.g., take_services_with_updates and
     /// remove_service_from_state).
     fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
+        let incarnation = self.incarnation_for_service(&service);
+        self.butterfly
+            .mark_service_for_deletion(service.to_rumor(incarnation));
         Self::service_stop_future(service,
                                   Arc::clone(&self.user_config_watcher),
                                   Arc::clone(&self.updater),
@@ -1449,6 +1426,21 @@ impl Manager {
                 outputln!("user.toml changes detected for {}", &service.spec_ident);
                 service.user_config_updated = true;
             }
+        }
+    }
+
+    fn incarnation_for_service(&self, service: &Service) -> u64 {
+        if let Some(rumor) = self.butterfly
+                                 .service_store
+                                 .list
+                                 .read()
+                                 .expect("Rumor store lock poisoned")
+                                 .get(&*service.service_group)
+                                 .and_then(|r| r.get(&self.sys.member_id))
+        {
+            rumor.clone().incarnation + 1
+        } else {
+            1
         }
     }
 }

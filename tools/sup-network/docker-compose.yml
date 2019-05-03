@@ -2,8 +2,6 @@ version: "3.4"
 
 x-service: &srv
   image: hab-sup-network
-  networks:
-    - sup
   volumes:
     - type: bind
       source: ./CTL_SECRET
@@ -38,27 +36,59 @@ x-service: &srv
     - HAB_SUP_BINARY=/bin/hab-sup
     - HAB_LAUNCH_BINARY=/bin/hab-launch
     - HAB_LAUNCH_NO_SUP_VERSION_CHECK=1
-    - RUST_LOG=debug,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core=info
+    - RUST_LOG=info,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core=info
     - PATH=/bin:/usr/bin
   entrypoint: /bin/hab
 
 services:
   bastion:
     <<: *srv
-    container_name: bastion
+    networks:
+      sup:
+        ipv4_address: "172.16.1.10"
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
       - "--permanent-peer"
 
-  peers:
+  peer_1:
     <<: *srv
+    networks:
+      sup:
+        ipv4_address: "172.16.1.11"
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
-      - "--peer=bastion"
+      - "--peer=172.16.1.10"
+    depends_on:
+      - bastion
+
+  peer_2:
+    <<: *srv
+    networks:
+      sup:
+        ipv4_address: "172.16.1.12"
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--peer=172.16.1.10"
+    depends_on:
+      - bastion
+
+  peer_3:
+    <<: *srv
+    networks:
+      sup:
+        ipv4_address: "172.16.1.13"
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--peer=172.16.1.10"
     depends_on:
       - bastion
 
 networks:
   sup:
+    ipam:
+      config:
+        - subnet: "172.16.1.0/24"

@@ -15,5 +15,3 @@ RUN apt-get install -y \
 RUN useradd --user-group hab
 
 COPY scripts/* /usr/bin/
-
-RUN curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | bash

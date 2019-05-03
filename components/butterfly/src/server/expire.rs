@@ -28,8 +28,6 @@ impl Expire {
                 .member_list
                 .members_expired_to_departed(self.timing.departure_timeout_duration());
 
-            // JB TODO: How does this work for members, since members aren't /quite/
-            // the same kind of rumor
             let now = Utc::now();
             self.server.departure_store.purge_expired(now);
             self.server.election_store.purge_expired(now);

@@ -1,9 +1,8 @@
-HAB_SUP_TEST_NETWORK_SIZE ?= 3
-HAB_SUP_TEST_NETWORK_PEER_NAME ?= peers_1
+HAB_SUP_TEST_NETWORK_PEER_NAME ?= peer_1
 
 up: CTL_SECRET
 	@docker build -t hab-sup-network .
-	@docker-compose up --scale peers=${HAB_SUP_TEST_NETWORK_SIZE}
+	@docker-compose up -d
 
 down:
 	@docker-compose down
@@ -15,12 +14,18 @@ start:
 stop:
 	@docker-compose stop
 
+logs:
+	@docker-compose logs -f ${HAB_SUP_TEST_NETWORK_PEER_NAME}
+
 console:
-	@docker exec -it $$(docker ps -qf name=${HAB_SUP_TEST_NETWORK_PEER_NAME}) /bin/bash
+	@docker exec -it $$(docker ps -aqf name=${HAB_SUP_TEST_NETWORK_PEER_NAME}) /bin/bash
+
+rst:
+	@docker exec -it $$(docker ps -aqf name=${HAB_SUP_TEST_NETWORK_PEER_NAME}) /usr/bin/watch-rst.sh
 
 # Kill the specified container to simulate a departure
 kill:
-	@docker stop $$(docker ps -qf name=${HAB_SUP_TEST_NETWORK_PEER_NAME})
+	@docker stop $$(docker ps -aqf name=${HAB_SUP_TEST_NETWORK_PEER_NAME})
 
 # This gets the IP address of one of the containers that you specify. This is
 # useful if you need to e.g. hab svc load --remote-sup=X.X.X.X core/redis

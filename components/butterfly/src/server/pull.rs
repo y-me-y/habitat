@@ -120,7 +120,9 @@ impl Pull {
             }
 
             trace_it!(GOSSIP: &self.server, TraceKind::RecvRumor, &proto.from_id, &proto);
+
             // dbg!(&proto);
+
             match proto.kind {
                 RumorKind::Membership(membership) => {
                     self.server
