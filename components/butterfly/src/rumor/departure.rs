@@ -49,9 +49,7 @@ impl FromProto<ProtoRumor> for Departure {
             _ => panic!("from-bytes departure"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration,
-                                            payload.last_refresh,
-                                            RumorLifespan::departure)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::departure)?;
 
         Ok(Departure { member_id: payload.member_id
                                          .ok_or(Error::ProtocolMismatch("member-id"))?,
@@ -63,11 +61,10 @@ impl FromProto<ProtoRumor> for Departure {
 
 impl From<Departure> for newscast::Departure {
     fn from(value: Departure) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
-        newscast::Departure { member_id:    Some(value.member_id),
-                              uuid:         Some(value.uuid),
-                              expiration:   Some(exp),
-                              last_refresh: Some(lref), }
+        let exp = value.ttl.for_proto();
+        newscast::Departure { member_id:  Some(value.member_id),
+                              uuid:       Some(value.uuid),
+                              expiration: Some(exp), }
     }
 }
 

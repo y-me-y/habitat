@@ -140,9 +140,7 @@ impl FromProto<ProtoRumor> for Election {
             _ => panic!("from-bytes election"),
         };
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
-        let ttl = RumorLifespan::from_proto(payload.expiration,
-                                            payload.last_refresh,
-                                            RumorLifespan::election)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::election)?;
         Ok(Election { member_id: from_id.clone(),
                       service_group: payload.service_group
                                             .ok_or(Error::ProtocolMismatch("service-group"))?,
@@ -160,7 +158,7 @@ impl FromProto<ProtoRumor> for Election {
 
 impl From<Election> for newscast::Election {
     fn from(value: Election) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         newscast::Election { member_id:     Some(value.member_id),
                              service_group: Some(value.service_group.to_string()),
                              term:          Some(value.term),
@@ -168,8 +166,7 @@ impl From<Election> for newscast::Election {
                              status:        Some(value.status as i32),
                              votes:         value.votes,
                              uuid:          Some(value.uuid),
-                             expiration:    Some(exp),
-                             last_refresh:  Some(lref), }
+                             expiration:    Some(exp), }
     }
 }
 

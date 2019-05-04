@@ -44,11 +44,10 @@ impl fmt::Display for RumorType {
 
 impl From<CDeparture> for Rumor {
     fn from(value: CDeparture) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
-        let payload = Departure { member_id:    Some(value.member_id),
-                                  uuid:         Some(value.uuid),
-                                  expiration:   Some(exp),
-                                  last_refresh: Some(lref), };
+        let exp = value.ttl.for_proto();
+        let payload = Departure { member_id:  Some(value.member_id),
+                                  uuid:       Some(value.uuid),
+                                  expiration: Some(exp), };
         Rumor { r#type:  RumorType::Departure as i32,
                 tag:     Vec::default(),
                 from_id: Some("butterflyclient".to_string()),
@@ -58,7 +57,7 @@ impl From<CDeparture> for Rumor {
 
 impl From<CElection> for Rumor {
     fn from(value: CElection) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         let payload = Election { member_id:     Some(value.member_id.clone()),
                                  service_group: Some(value.service_group.to_string()),
                                  term:          Some(value.term),
@@ -66,8 +65,7 @@ impl From<CElection> for Rumor {
                                  status:        Some(value.status as i32),
                                  votes:         value.votes.clone(),
                                  uuid:          Some(value.uuid),
-                                 expiration:    Some(exp),
-                                 last_refresh:  Some(lref), };
+                                 expiration:    Some(exp), };
         Rumor { r#type:  RumorType::Election as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),
@@ -77,7 +75,7 @@ impl From<CElection> for Rumor {
 
 impl From<CElectionUpdate> for Rumor {
     fn from(value: CElectionUpdate) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         let payload = Election { member_id:     Some(value.member_id.clone()),
                                  service_group: Some(value.service_group.to_string()),
                                  term:          Some(value.term),
@@ -85,8 +83,7 @@ impl From<CElectionUpdate> for Rumor {
                                  status:        Some(value.status as i32),
                                  votes:         value.votes.clone(),
                                  uuid:          Some(value.uuid.clone()),
-                                 expiration:    Some(exp),
-                                 last_refresh:  Some(lref), };
+                                 expiration:    Some(exp), };
         Rumor { r#type:  RumorType::ElectionUpdate as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id.clone()),
@@ -96,7 +93,7 @@ impl From<CElectionUpdate> for Rumor {
 
 impl From<CService> for Rumor {
     fn from(value: CService) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         let payload = Service { member_id:     Some(value.member_id.clone()),
                                 service_group: Some(value.service_group.to_string()),
                                 incarnation:   Some(value.incarnation),
@@ -105,8 +102,7 @@ impl From<CService> for Rumor {
                                 cfg:           Some(value.cfg),
                                 sys:           Some(value.sys.into()),
                                 uuid:          Some(value.uuid),
-                                expiration:    Some(exp),
-                                last_refresh:  Some(lref), };
+                                expiration:    Some(exp), };
         Rumor { r#type:  RumorType::Service as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),
@@ -116,14 +112,13 @@ impl From<CService> for Rumor {
 
 impl From<CServiceConfig> for Rumor {
     fn from(value: CServiceConfig) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         let payload = ServiceConfig { service_group: Some(value.service_group.to_string()),
                                       incarnation:   Some(value.incarnation),
                                       encrypted:     Some(value.encrypted),
                                       config:        Some(value.config),
                                       uuid:          Some(value.uuid),
-                                      expiration:    Some(exp),
-                                      last_refresh:  Some(lref), };
+                                      expiration:    Some(exp), };
         Rumor { r#type:  RumorType::ServiceConfig as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),
@@ -133,15 +128,14 @@ impl From<CServiceConfig> for Rumor {
 
 impl From<CServiceFile> for Rumor {
     fn from(value: CServiceFile) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         let payload = ServiceFile { service_group: Some(value.service_group.to_string()),
                                     incarnation:   Some(value.incarnation),
                                     encrypted:     Some(value.encrypted),
                                     filename:      Some(value.filename),
                                     body:          Some(value.body),
                                     uuid:          Some(value.uuid),
-                                    expiration:    Some(exp),
-                                    last_refresh:  Some(lref), };
+                                    expiration:    Some(exp), };
         Rumor { r#type:  RumorType::ServiceFile as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),

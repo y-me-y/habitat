@@ -17,8 +17,6 @@ pub struct Election {
     pub uuid: ::std::option::Option<std::string::String>,
     #[prost(string, optional, tag="8")]
     pub expiration: ::std::option::Option<std::string::String>,
-    #[prost(string, optional, tag="9")]
-    pub last_refresh: ::std::option::Option<std::string::String>,
 }
 pub mod election {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -51,8 +49,6 @@ pub struct Service {
     pub uuid: ::std::option::Option<std::string::String>,
     #[prost(string, optional, tag="13")]
     pub expiration: ::std::option::Option<std::string::String>,
-    #[prost(string, optional, tag="14")]
-    pub last_refresh: ::std::option::Option<std::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
@@ -69,8 +65,6 @@ pub struct ServiceConfig {
     pub uuid: ::std::option::Option<std::string::String>,
     #[prost(string, optional, tag="6")]
     pub expiration: ::std::option::Option<std::string::String>,
-    #[prost(string, optional, tag="7")]
-    pub last_refresh: ::std::option::Option<std::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
@@ -89,8 +83,6 @@ pub struct ServiceFile {
     pub uuid: ::std::option::Option<std::string::String>,
     #[prost(string, optional, tag="7")]
     pub expiration: ::std::option::Option<std::string::String>,
-    #[prost(string, optional, tag="8")]
-    pub last_refresh: ::std::option::Option<std::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
@@ -121,8 +113,6 @@ pub struct Departure {
     pub uuid: ::std::option::Option<std::string::String>,
     #[prost(string, optional, tag="3")]
     pub expiration: ::std::option::Option<std::string::String>,
-    #[prost(string, optional, tag="4")]
-    pub last_refresh: ::std::option::Option<std::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]

@@ -85,17 +85,11 @@ impl From<RumorKind> for RumorPayload {
 }
 
 #[derive(Debug, Clone)]
-pub struct RumorLifespan {
-    pub expiration:   DateTime<Utc>,
-    pub last_refresh: DateTime<Utc>,
-}
+pub struct RumorLifespan(DateTime<Utc>);
 
 impl fmt::Display for RumorLifespan {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "RumorLifespan e/{} lr/{}",
-               self.expiration.to_rfc3339(),
-               self.last_refresh.to_rfc3339())
+        write!(f, "RumorLifespan e/{}", self.0.to_rfc3339(),)
     }
 }
 
@@ -110,46 +104,32 @@ impl RumorLifespan {
 
     pub fn service_file() -> Self { Self::new(ServiceFile::ttl()) }
 
-    fn new(ttl: Duration) -> Self {
-        let now = Utc::now();
+    fn new(ttl: Duration) -> Self { RumorLifespan(Utc::now() + ttl) }
 
-        RumorLifespan { expiration:   now + ttl,
-                        last_refresh: now, }
-    }
-
-    pub fn for_proto(&self) -> (String, String) {
-        (self.expiration.to_rfc3339(), self.last_refresh.to_rfc3339())
-    }
+    pub fn for_proto(&self) -> String { self.0.to_rfc3339() }
 
     pub fn from_proto(expiration: Option<String>,
-                      last_refresh: Option<String>,
                       default_fn: fn() -> RumorLifespan)
                       -> Result<Self> {
-        if expiration.is_none() || last_refresh.is_none() {
+        if expiration.is_none() {
             return Ok(default_fn());
         }
 
         let exp = DateTime::parse_from_rfc3339(&expiration.unwrap())?;
-        let lref = DateTime::parse_from_rfc3339(&last_refresh.unwrap())?;
-
-        Ok(RumorLifespan { expiration:   exp.with_timezone(&Utc),
-                           last_refresh: lref.with_timezone(&Utc), })
+        Ok(RumorLifespan(exp.with_timezone(&Utc)))
     }
 
-    pub fn refresh(&mut self, duration: Duration) {
-        let now = Utc::now();
-        self.expiration = now + duration;
-        self.last_refresh = now;
-    }
+    pub fn expire(&mut self, time_to_expire: Duration) { self.0 = Utc::now() + time_to_expire }
+
+    pub fn expiration(&self) -> &DateTime<Utc> { &self.0 }
 }
 
 impl Serialize for RumorLifespan {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let mut strukt = serializer.serialize_struct("rumor_lifespan", 2)?;
-        strukt.serialize_field("expiration", &self.expiration.to_rfc3339())?;
-        strukt.serialize_field("last_refresh", &self.last_refresh.to_rfc3339())?;
+        let mut strukt = serializer.serialize_struct("rumor_lifespan", 1)?;
+        strukt.serialize_field("expiration", &self.0.to_rfc3339())?;
         strukt.end()
     }
 }
@@ -186,6 +166,7 @@ pub trait Rumor: Message<ProtoRumor> + Sized + Debug {
     fn id(&self) -> &str;
     fn merge(&mut self, other: Self) -> bool;
     fn uuid(&self) -> &str;
+    fn expire(&mut self) { self.lifespan_as_mut().expire(Self::ttl()) }
     fn lifespan(&self) -> &RumorLifespan;
     fn lifespan_as_mut(&mut self) -> &mut RumorLifespan;
     fn ttl() -> Duration;
@@ -408,7 +389,7 @@ impl<T> RumorStore<T> where T: Rumor
 
     /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
     /// mutated; if nothing changed, returns false.
-    pub fn insert(&self, mut rumor: T) -> bool {
+    pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.write_entries();
         let rumors = list.entry(String::from(rumor.key()))
                          .or_insert_with(HashMap::new);
@@ -510,18 +491,18 @@ impl<T> RumorStore<T> where T: Rumor
 
     pub fn expire(&self, key: &str, id: &str) {
         let mut list = self.write_entries();
-        if let Some(r) = list.get_mut(key).and_then(|v| v.get_id(id)) {
+        if let Some(r) = list.get_mut(key).and_then(|v| v.get_mut(id)) {
             r.expire();
         }
     }
 
     pub fn expired_rumors(&self, expiration_date: DateTime<Utc>) -> Vec<T> {
-        self.partitioned_rumors(|rumor| rumor.lifespan().expiration < expiration_date)
+        self.partitioned_rumors(|rumor| rumor.lifespan().expiration() < &expiration_date)
             .0
     }
 
     pub fn live_rumors(&self, expiration_date: DateTime<Utc>) -> Vec<T> {
-        self.partitioned_rumors(|rumor| rumor.lifespan().expiration < expiration_date)
+        self.partitioned_rumors(|rumor| rumor.lifespan().expiration() < &expiration_date)
             .1
     }
 

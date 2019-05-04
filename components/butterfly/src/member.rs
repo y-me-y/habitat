@@ -197,7 +197,7 @@ impl From<Member> for proto::Member {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Membership {
     pub member: Member,
     pub health: Health,

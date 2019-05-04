@@ -129,9 +129,7 @@ impl FromProto<newscast::Rumor> for Service {
             _ => panic!("from-bytes service"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration,
-                                            payload.last_refresh,
-                                            RumorLifespan::service)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::service)?;
 
         Ok(Service { member_id: payload.member_id
                                        .ok_or(Error::ProtocolMismatch("member-id"))?,
@@ -154,7 +152,7 @@ impl FromProto<newscast::Rumor> for Service {
 
 impl From<Service> for newscast::Service {
     fn from(value: Service) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         newscast::Service { member_id:     Some(value.member_id),
                             service_group: Some(value.service_group.to_string()),
                             incarnation:   Some(value.incarnation),
@@ -163,8 +161,7 @@ impl From<Service> for newscast::Service {
                             cfg:           Some(value.cfg),
                             sys:           Some(value.sys.into()),
                             uuid:          Some(value.uuid),
-                            expiration:    Some(exp),
-                            last_refresh:  Some(lref), }
+                            expiration:    Some(exp), }
     }
 }
 

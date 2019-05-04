@@ -122,9 +122,7 @@ impl FromProto<ProtoRumor> for ServiceConfig {
             _ => panic!("from-bytes service-config"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration,
-                                            payload.last_refresh,
-                                            RumorLifespan::service_config)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::service_config)?;
 
         Ok(ServiceConfig { from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
                            service_group: payload.service_group
@@ -143,14 +141,13 @@ impl FromProto<ProtoRumor> for ServiceConfig {
 
 impl From<ServiceConfig> for newscast::ServiceConfig {
     fn from(value: ServiceConfig) -> Self {
-        let (exp, lref) = value.ttl.for_proto();
+        let exp = value.ttl.for_proto();
         newscast::ServiceConfig { service_group: Some(value.service_group.to_string()),
                                   incarnation:   Some(value.incarnation),
                                   encrypted:     Some(value.encrypted),
                                   config:        Some(value.config),
                                   uuid:          Some(value.uuid),
-                                  expiration:    Some(exp),
-                                  last_refresh:  Some(lref), }
+                                  expiration:    Some(exp), }
     }
 }
 
