@@ -36,7 +36,7 @@ impl Departure {
     pub fn new(member_id: &str) -> Self {
         Departure { member_id: member_id.to_string(),
                     uuid:      Uuid::new_v4().to_simple_ref().to_string(),
-                    ttl:       RumorLifespan::departure(), }
+                    ttl:       RumorLifespan::new(Self::ttl()), }
     }
 }
 
@@ -49,7 +49,7 @@ impl FromProto<ProtoRumor> for Departure {
             _ => panic!("from-bytes departure"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::departure)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::forever)?;
 
         Ok(Departure { member_id: payload.member_id
                                          .ok_or(Error::ProtocolMismatch("member-id"))?,

@@ -74,7 +74,7 @@ impl ServiceConfig {
                         encrypted: false,
                         config,
                         uuid: Uuid::new_v4().to_simple_ref().to_string(),
-                        ttl: RumorLifespan::service_config() }
+                        ttl: RumorLifespan::forever() }
     }
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
@@ -122,7 +122,7 @@ impl FromProto<ProtoRumor> for ServiceConfig {
             _ => panic!("from-bytes service-config"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::service_config)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::forever)?;
 
         Ok(ServiceConfig { from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
                            service_group: payload.service_group

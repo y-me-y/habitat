@@ -94,15 +94,8 @@ impl fmt::Display for RumorLifespan {
 }
 
 impl RumorLifespan {
-    pub fn departure() -> Self { Self::new(Departure::ttl()) }
-
-    pub fn election() -> Self { Self::new(Election::ttl()) }
-
-    pub fn service() -> Self { Self::new(Service::ttl()) }
-
-    pub fn service_config() -> Self { Self::new(ServiceConfig::ttl()) }
-
-    pub fn service_file() -> Self { Self::new(ServiceFile::ttl()) }
+    // 100 years from now is effectively forever, for our purposes
+    pub fn forever() -> Self { Self::new(Duration::weeks(5200)) }
 
     fn new(ttl: Duration) -> Self { RumorLifespan(Utc::now() + ttl) }
 
@@ -493,6 +486,12 @@ impl<T> RumorStore<T> where T: Rumor
         let mut list = self.write_entries();
         if let Some(r) = list.get_mut(key).and_then(|v| v.get_mut(id)) {
             r.expire();
+        }
+    }
+
+    pub fn expire_all_for_key(&self, key: &str) {
+        if let Some(m) = self.write_entries().get_mut(key) {
+            m.values_mut().for_each(|r| r.expire());
         }
     }
 

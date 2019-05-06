@@ -84,7 +84,7 @@ impl Election {
                    },
                    votes: vec![from_id],
                    uuid: Uuid::new_v4().to_simple_ref().to_string(),
-                   ttl: RumorLifespan::election() }
+                   ttl: RumorLifespan::forever() }
     }
 
     /// Insert a vote for the election.
@@ -140,7 +140,7 @@ impl FromProto<ProtoRumor> for Election {
             _ => panic!("from-bytes election"),
         };
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
-        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::election)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::forever)?;
         Ok(Election { member_id: from_id.clone(),
                       service_group: payload.service_group
                                             .ok_or(Error::ProtocolMismatch("service-group"))?,
@@ -211,13 +211,12 @@ impl Rumor for Election {
         }
     }
 
-    /// We are the Election rumor!
     fn kind(&self) -> RumorType { RumorType::Election }
 
     /// There can be only
     fn id(&self) -> &str { "election" }
 
-    fn key(&self) -> &str { self.service_group.as_ref() }
+    fn key(&self) -> &str { &self.service_group }
 
     fn uuid(&self) -> &str { &self.uuid }
 

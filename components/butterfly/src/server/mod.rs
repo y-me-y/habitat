@@ -691,9 +691,11 @@ impl Server {
 
     /// Mark a service for deletion. This means butterfly will stop sending out rumors for this
     /// service, meaning it will eventually expire and get removed on all the supervisors in the
-    /// network.
+    /// network. Since we're removing the service, we should remove its config and files as well.
     pub fn mark_service_for_deletion(&self, service: Service) {
-        self.service_store.expire(service.key(), service.id());
+        self.service_store.expire_all_for_key(service.key());
+        self.service_config_store.expire_all_for_key(service.key());
+        self.service_file_store.expire_all_for_key(service.key());
     }
 
     /// Insert a service config rumor into the service store.
@@ -773,6 +775,9 @@ impl Server {
     /// Start an election for the given service group, declaring this members suitability and the
     /// term for the election.
     pub fn start_election(&self, service_group: &str, term: u64) {
+        // Before starting a new election, let's mark any old ones as expired
+        self.election_store.expire_all_for_key(service_group);
+
         let suitability = self.suitability_lookup.get(&service_group);
         let has_quorum = self.check_quorum(service_group);
         let e = Election::new(self.member_id(),
@@ -788,6 +793,9 @@ impl Server {
     }
 
     pub fn start_update_election(&self, service_group: &str, suitability: u64, term: u64) {
+        // Before starting a new election, let's mark any old ones as expired
+        self.election_store.expire_all_for_key(service_group);
+
         let has_quorum = self.check_quorum(service_group);
         let e = ElectionUpdate::new(self.member_id(),
                                     service_group,

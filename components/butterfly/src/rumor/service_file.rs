@@ -80,7 +80,7 @@ impl ServiceFile {
                       filename: filename.into(),
                       body,
                       uuid: Uuid::new_v4().to_simple_ref().to_string(),
-                      ttl: RumorLifespan::service_file() }
+                      ttl: RumorLifespan::forever() }
     }
 
     /// Encrypt the contents of the service file
@@ -116,7 +116,7 @@ impl FromProto<ProtoRumor> for ServiceFile {
             _ => panic!("from-bytes service-config"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::service_file)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::forever)?;
 
         Ok(ServiceFile { from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
                          service_group:

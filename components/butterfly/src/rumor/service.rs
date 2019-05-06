@@ -116,7 +116,7 @@ impl Service {
                           })
                           .unwrap_or_default(),
                   uuid: Uuid::new_v4().to_simple_ref().to_string(),
-                  ttl: RumorLifespan::service() }
+                  ttl: RumorLifespan::forever() }
     }
 }
 
@@ -129,7 +129,7 @@ impl FromProto<newscast::Rumor> for Service {
             _ => panic!("from-bytes service"),
         };
 
-        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::service)?;
+        let ttl = RumorLifespan::from_proto(payload.expiration, RumorLifespan::forever)?;
 
         Ok(Service { member_id: payload.member_id
                                        .ok_or(Error::ProtocolMismatch("member-id"))?,
@@ -181,7 +181,7 @@ impl Rumor for Service {
 
     fn id(&self) -> &str { &self.member_id }
 
-    fn key(&self) -> &str { self.service_group.as_ref() }
+    fn key(&self) -> &str { &self.service_group }
 
     fn uuid(&self) -> &str { &self.uuid }
 
