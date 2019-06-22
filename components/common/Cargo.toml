@@ -24,7 +24,7 @@ habitat_core = { path = "../core" }
 #   See https://github.com/sunng87/handlebars-rust/commit/707f05442ef6f441a1cfc6b13ac180b78cb296db
 handlebars = { version = "= 0.28.3", default-features = false }
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper = "0.10"
+hyper = "*"
 json = "*"
 lazy_static = "*"
 libc = "*"

@@ -11,11 +11,11 @@ base64 = "*"
 log = "*"
 httparse = "*"
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper = "0.10"
+hyper = "*"
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper-openssl = "0.2"
+hyper-openssl = "0.7"
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-openssl = "0.9.23"
+openssl = "*"
 serde = "*"
 serde_json = "*"
 url = "*"
