@@ -1,5 +1,4 @@
 use habitat_core as hab_core;
-use habitat_http_client as hab_http;
 #[macro_use]
 extern crate hyper;
 

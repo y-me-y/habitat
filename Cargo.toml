@@ -8,7 +8,6 @@ members = [
   "components/common",
   "components/core",
   "components/hab",
-  "components/http-client",
   "components/launcher",
   "components/launcher-client",
   "components/launcher-protocol",

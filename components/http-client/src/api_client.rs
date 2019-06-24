@@ -85,7 +85,7 @@ impl ApiClient {
     /// Builds an HTTP GET request for a given path with the ability to customize the target URL.
     pub fn get_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
         where F: FnMut(&mut Url)
-    {
+    {https://github.com/habitat-sh/core/issues/72
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("GET {} with {:?}", &url, &self);
