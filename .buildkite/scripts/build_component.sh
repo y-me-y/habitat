@@ -35,9 +35,9 @@ export HAB_ORIGIN=core
 # CI_OVERRIDE_CHANNEL is basically used to tell the studio which
 # hab/backline to grab
 if [[ "${new_studio:-}" ]]; then
-    CI_OVERRIDE_CHANNEL="${channel}" HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
+    VERBOSE=1 CI_OVERRIDE_CHANNEL="${channel}" HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 else
-    HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
+    VERBOSE=1 HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 fi
 source results/last_build.env
 
