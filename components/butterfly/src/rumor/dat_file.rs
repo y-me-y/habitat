@@ -60,7 +60,7 @@ pub struct DatFile {
     header:      Header,
     header_size: u64,
     path:        PathBuf,
-    reader:      BufReader<File>,
+    reader:      Option<BufReader<File>>,
 }
 
 impl DatFile {
@@ -68,19 +68,18 @@ impl DatFile {
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
     pub fn read_or_create_mlr(data_path: PathBuf, server: &Server) -> Result<Self> {
-        let file = OpenOptions::new().create(true)
+        let size = OpenOptions::new().create(true)
                                      .read(true)
                                      .write(true)
                                      .open(&data_path)
-                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?;
-        let size = file.metadata()
-                       .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
-                       .len();
-        let reader = BufReader::new(file);
-        let mut dat_file = DatFile { path: data_path,
+                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
+                                     .metadata()
+                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
+                                     .len();
+        let mut dat_file = DatFile { path:        data_path,
                                      header_size: 0,
-                                     header: Header::default(),
-                                     reader };
+                                     header:      Header::default(),
+                                     reader:      None, };
 
         if size == 0 {
             dat_file.write_mlr(server)?;
@@ -95,7 +94,7 @@ impl DatFile {
         let mut dat_file = DatFile { header:      Default::default(),
                                      header_size: Default::default(),
                                      path:        data_path.to_path_buf(),
-                                     reader:      BufReader::new(File::open(&data_path)?), };
+                                     reader:      None, };
 
         dat_file.read_header()?;
         Ok(dat_file)
@@ -105,10 +104,10 @@ impl DatFile {
 
     fn read_header(&mut self) -> Result<()> {
         let mut version = [0; 1];
+        let mut reader = BufReader::new(File::open(self.path.clone())?);
 
-        self.reader
-            .read_exact(&mut version)
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        reader.read_exact(&mut version)
+              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
 
         // If this has happened, it's likely that the file is corrupt
@@ -120,18 +119,18 @@ impl DatFile {
         }
 
         let (header_size, real_header) =
-            Header::from_file(&mut self.reader, version[0]).map_err(|err| {
-                                                               Error::DatFileIO(self.path.clone(),
-                                                                                err)
-                                                           })?;
+            Header::from_file(&mut reader, version[0]).map_err(|err| {
+                                                          Error::DatFileIO(self.path.clone(), err)
+                                                      })?;
         self.header = real_header;
         self.header_size = header_size;
         debug!("Header Size: {:?}", self.header_size);
         debug!("Header: {:?}", self.header);
 
-        self.reader
-            .seek(SeekFrom::Start(self.member_offset()))
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        reader.seek(SeekFrom::Start(self.member_offset()))
+              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+
+        self.reader = Some(reader);
         Ok(())
     }
 
@@ -147,11 +146,15 @@ impl DatFile {
                 break;
             }
             self.reader
+                .as_mut()
+                .unwrap()
                 .read_exact(&mut size_buf)
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             let rumor_size = LittleEndian::read_u64(&size_buf);
             rumor_buf.resize(rumor_size as usize, 0);
             self.reader
+                .as_mut()
+                .unwrap()
                 .read_exact(&mut rumor_buf)
                 .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             bytes_read += size_buf.len() as u64 + rumor_size;
