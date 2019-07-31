@@ -31,30 +31,7 @@ echo "--- :habicat: Building components/${component}"
 # This is a temporary measure so we can run fake releases
 export HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$DO_FAKE_RELEASE
 
-env HAB_STUDIO_ROOT=/hab/studios/inspectorama HAB_BLDR_CHANNEL="${channel}" ${hab_binary} studio new
-
-echo "--- :habicat: Inspecting studio"
-echo "/bin/sh"
-file /hab/studios/inspectorama/bin/sh
-if [ $(file -bi /hab/studios/inspectorama/bin/sh) == "text/x-shellscript; charset=us-ascii" ]; then
-  cat /hab/studios/inspectorama/bin/sh
-fi
-
-echo "/bin/bash"
-file /hab/studios/inspectorama/bin/bash
-if [ $(file -bi /hab/studios/inspectorama/bin/bash) == "text/x-shellscript; charset=us-ascii" ]; then
-  cat /hab/studios/inspectorama/bin/bash
-fi
-
-echo "/bin/hab"
-file /hab/studios/inspectorama/hab/bin/hab
-if [ $(file -bi /hab/studios/inspectorama/hab/bin/hab) == "text/x-shellscript; charset=us-ascii" ]; then
-  cat /hab/studios/inspectorama/hab/bin/hab
-fi
-
-exit 1
-
-HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
+DEBUG=true HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 source results/last_build.env
 
 echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channel}' channel"
