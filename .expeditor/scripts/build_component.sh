@@ -31,7 +31,7 @@ echo "--- :habicat: Building components/${component}"
 # This is a temporary measure so we can run fake releases
 export HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$DO_FAKE_RELEASE
 
-env HAB_STUDIO_ROOT=/hab/studio/inspectorama HAB_BLDR_CHANNEL="${channel}" ${hab_binary} studio new
+env HAB_STUDIO_ROOT=/hab/studios/inspectorama HAB_BLDR_CHANNEL="${channel}" ${hab_binary} studio new
 
 echo "--- :habicat: Inspecting studio"
 echo "/bin/sh"
