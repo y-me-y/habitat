@@ -47,7 +47,7 @@ if [ $(file -bi /hab/studios/inspectorama/bin/bash) == "text/x-shellscript; char
 fi
 
 echo "/bin/hab"
-file /hab/studios/inspectorama/bin/hab
+file /hab/studios/inspectorama/hab/bin/hab
 if [ $(file -bi /hab/studios/inspectorama/hab/bin/hab) == "text/x-shellscript; charset=us-ascii" ]; then
   cat /hab/studios/inspectorama/hab/bin/hab
 fi
