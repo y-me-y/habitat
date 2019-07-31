@@ -36,20 +36,20 @@ env HAB_STUDIO_ROOT=/hab/studios/inspectorama HAB_BLDR_CHANNEL="${channel}" ${ha
 echo "--- :habicat: Inspecting studio"
 echo "/bin/sh"
 file /hab/studios/inspectorama/bin/sh
-if [ file -bi /hab/studios/inspectorama/bin/sh == "text/x-shellscript; charset=us-ascii" ]; then
+if [ $(file -bi /hab/studios/inspectorama/bin/sh) == "text/x-shellscript; charset=us-ascii" ]; then
   cat /hab/studios/inspectorama/bin/sh
 fi
 
 echo "/bin/bash"
 file /hab/studios/inspectorama/bin/bash
-if [ file -bi /hab/studios/inspectorama/bin/sh == "text/x-shellscript; charset=us-ascii" ]; then
+if [ $(file -bi /hab/studios/inspectorama/bin/bash) == "text/x-shellscript; charset=us-ascii" ]; then
   cat /hab/studios/inspectorama/bin/bash
 fi
 
 echo "/bin/hab"
 file /hab/studios/inspectorama/bin/hab
-if [ file -bi /hab/studios/inspectorama/bin/sh == "text/x-shellscript; charset=us-ascii" ]; then
-  cat /hab/studios/inspectorama/bin/hab
+if [ $(file -bi /hab/studios/inspectorama/hab/bin/hab) == "text/x-shellscript; charset=us-ascii" ]; then
+  cat /hab/studios/inspectorama/hab/bin/hab
 fi
 
 exit 1
