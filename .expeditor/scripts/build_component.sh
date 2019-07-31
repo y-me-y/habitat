@@ -31,6 +31,27 @@ echo "--- :habicat: Building components/${component}"
 # This is a temporary measure so we can run fake releases
 export HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$DO_FAKE_RELEASE
 
+env HAB_STUDIO_ROOT=/hab/studios/inspectorama HAB_BLDR_CHANNEL="${channel}" ${hab_binary} studio new
+
+echo "--- :habicat: Inspecting studio"
+echo "/bin/sh"
+output=$(file -bi/hab/studios/inspectorama/bin/sh)
+if [ "$output" == "text/x-shellscript; charset=us-ascii" ]; then
+  cat /hab/studios/inspectorama/bin/sh
+fi
+
+echo "/bin/bash"
+output=$(file -bi/hab/studios/inspectorama/bin/bash)
+if [ "$output" == "text/x-shellscript; charset=us-ascii" ]; then
+  cat /hab/studios/inspectorama/bin/bash
+fi
+
+echo "/bin/hab"
+output=$(file -bi/hab/studios/inspectorama/hab/bin/hab)
+if [ "$output" == "text/x-shellscript; charset=us-ascii" ]; then
+  cat /hab/studios/inspectorama/hab/bin/hab
+fi
+
 DEBUG=true HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 source results/last_build.env
 
