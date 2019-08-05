@@ -23,9 +23,6 @@ echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 install_latest_hab_binary "$BUILD_PKG_TARGET"
 import_keys
 
-echo "--- :zap: Cleaning up old studio, if present"
-${hab_binary} studio rm
-
 echo "--- :habicat: Building components/${component}"
 
 # This is a temporary measure so we can run fake releases
