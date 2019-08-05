@@ -52,9 +52,8 @@ install_latest_hab_binary() {
             exit 1
             ;;
     esac
-    hab_binary="/bin/hab"
-    # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
-    ${hab_binary} pkg install core/hab-studio
+    # # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
+    # ${hab_binary} pkg install core/hab-studio
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
 
     # now install the latest hab available in our channel, if it and the studio exist yet
