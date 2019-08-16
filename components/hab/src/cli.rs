@@ -435,14 +435,15 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg DEST_DIR: -d --dest +takes_value {non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
                     "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
-            )
+             )
+            (subcommand: sub_pkg_build())
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["conf", "cfg"])
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
-            (subcommand: sub_pkg_build())
+             )
+            (subcommand: sub_pkg_download(feature_flags))
             (@subcommand env =>
                 (about: "Prints the runtime environment of a specific installed package")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
@@ -902,6 +903,37 @@ fn sub_pkg_build() -> App<'static, 'static> {
                                               .long("docker"));
     }
 
+    sub
+}
+
+fn sub_pkg_download(feature_flags: FeatureFlag) -> App<'static, 'static> {
+    let mut sub = clap_app!(@subcommand download =>
+    (about: "Download Habitat artifacts (including dependencies and keys) from Builder")
+    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+    (@arg BLDR_URL: --url -u +takes_value {valid_url} default_value(habitat_core::url::DEFAULT_BLDR_URL)
+        "Specify an alternate Builder endpoint. If not specified, the value will \
+         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+         https://bldr.habitat.sh)")
+    (@arg CACHE_DIRECTORY: --cache +takes_value default_value("/hab/cache")
+        "The path to store downloaded artifacts")
+    (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
+        "Install from the specified release channel (default: stable)")
+    (@arg PKG_IDENT_FILE: --file +takes_value +multiple
+        "File with newline separated package identifiers")
+    (@arg PKG_IDENT: +multiple
+            "One or more Habitat package identifiers (ex: acme/redis)")
+    (@arg PKG_TARGET: --target -t +takes_value {valid_target}
+            "Target architecture to fetch. Allowable options are one of (TODO ADD THIS)")
+    );
+    // TODO: Discover the background for this; while it seems reasonable to have, I'd really like to
+    // not cargo cult it in.
+    if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) {
+        sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
+                                                           packages when a corresponding \
+                                                           package cannot be installed from \
+                                                           Builder")
+                                                    .long("ignore-local"));
+    };
     sub
 }
 

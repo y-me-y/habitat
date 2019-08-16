@@ -1,5 +1,6 @@
 pub mod archive;
 pub mod ident;
+pub mod ident_target;
 pub mod install;
 pub mod list;
 pub mod metadata;
@@ -10,6 +11,7 @@ pub use self::{archive::{FromArchive,
                          PackageArchive},
                ident::{Identifiable,
                        PackageIdent},
+               ident_target::PackageIdentTarget,
                install::PackageInstall,
                list::all_packages,
                plan::Plan,

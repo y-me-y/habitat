@@ -89,6 +89,8 @@ pub enum Error {
     InvalidBinding(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
+    /// Occurs when a package identifier target string cannot be successfully parsed.
+    InvalidPackageIdentTarget(String),
     /// Occurs when a package target string cannot be successfully parsed.
     InvalidPackageTarget(String),
     /// Occurs when a package type is not recognized.
@@ -274,6 +276,11 @@ impl fmt::Display for Error {
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: acme/redis)",
+                        e)
+            }
+            Error::InvalidPackageIdentTarget(ref e) => {
+                format!("Invalid package identifer target: {:?}. A valid identifier is in the \
+                         form origin/name (example: acme/redis/1.2/201908120/x86-64-linux)",
                         e)
             }
             Error::InvalidPackageTarget(ref e) => {

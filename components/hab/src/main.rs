@@ -44,6 +44,7 @@ use habitat_common::{self as common,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
+
 use habitat_core::{crypto::{init,
                             keys::PairType,
                             BoxKeyPair,
@@ -51,6 +52,7 @@ use habitat_core::{crypto::{init,
                    env::{self as henv,
                          Config as _},
                    fs::{cache_artifact_path,
+                        cache_path,
                         launcher_root_path},
                    os::process::ShutdownTimeout,
                    package::{target,
@@ -74,6 +76,7 @@ use std::{env,
           fs::File,
           io::{self,
                prelude::*,
+               BufReader,
                Read},
           net::ToSocketAddrs,
           path::{Path,
@@ -239,6 +242,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
+                ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags)?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
                 ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
                 ("export", Some(m)) => sub_pkg_export(ui, m)?,
@@ -532,6 +536,36 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
         command::pkg::DependencyRelation::Requires
     };
     command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT)
+}
+
+// WIP TODO
+fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag) -> Result<()> {
+    let token = maybe_auth_token(&m);
+    let url = bldr_url_from_matches(&m)?;
+    let cache_dir = cache_dir_from_matches_or_default(m);
+    let channel = channel_from_matches_or_default(m);
+
+    let mut install_sources = download_idents_from_matches(m)?;
+    let mut install_sources_from_file = download_idents_from_file_matches(m)?;
+    install_sources_from_file.append(&mut install_sources);
+
+    let target = target_from_matches(m)?;
+
+    init();
+
+    common::command::package::download::start(ui, /* TODO implement download on pattern of
+                                                   * install */
+                                              &url,
+                                              &channel,
+                                              PRODUCT,
+                                              VERSION,
+                                              install_sources_from_file,
+                                              target,
+                                              &cache_dir,
+                                              token.as_ref().map(String::as_str))?;
+
+    // TODO FIX
+    Ok(())
 }
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
@@ -1416,7 +1450,7 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
                 Ok(v) => Ok(v),
                 Err(_) => {
                     config::load()?.auth_token
-                                   .ok_or(Error::ArgumentError("No auth token specified"))
+                                   .ok_or_else(|| Error::ArgumentError(String::from("No auth token specified")))
                 }
             }
         }
@@ -1572,6 +1606,58 @@ fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallS
         .collect()
 }
 
+fn download_idents_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
+    match matches.values_of("PKG_IDENT") {
+        Some(ident_strings) => {
+            ident_strings.map(|t| PackageIdent::from_str(t).map_err(Error::from))
+                         .collect()
+        }
+        _ => Ok(Vec::new()), // It's not an error to have no idents on command line
+    }
+}
+
+fn download_idents_from_file_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
+    let mut sources: Vec<PackageIdent> = Vec::new();
+
+    if let Some(files) = matches.values_of("PKG_IDENT_FILE") {
+        for filename in files {
+            let file = File::open(filename).unwrap(); // This is a likely user error; we should be more graceful
+            let buf_reader = BufReader::new(file);
+            let packages_or_nothing: Result<Vec<Option<PackageIdent>>> =
+                buf_reader.lines()
+                          .map(|x| expand_line(&x.unwrap(), filename))
+                          .collect(); // Collect takes Vec<Result<x>> to Result<Vec<x>>
+            packages_or_nothing?.into_iter()
+                                .filter(std::option::Option::is_some)
+                                .for_each(|y| sources.push(y.unwrap()));
+        }
+    }
+    Ok(sources)
+}
+
+// Error handling would be nice here; if nothing else dump the offending string
+pub fn expand_line(line: &str, file: &str) -> Result<Option<PackageIdent>> {
+    let trimmed = line.trim();
+    match trimmed.len() {
+        0 => Ok(None),
+        _ => {
+            PackageIdent::from_str(trimmed).map_err(|_| {
+                                               Error::ArgumentError(format!(
+                    "{} in file {} is not a valid PackageIdent",
+                    line, file
+                ))
+                                           })
+                                           .map(Some)
+        }
+    }
+}
+
+fn cache_dir_from_matches_or_default(matches: &ArgMatches<'_>) -> PathBuf {
+    matches.value_of("CACHE_DIRECTORY")
+           .map(PathBuf::from)
+           .unwrap_or_else(|| cache_path::<PathBuf>(None))
+}
+
 fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
     matches
         .values_of("EXCLUDE")
@@ -1703,9 +1789,8 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
                                                          conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                               "ServiceStatus" => {
-                                  let m =
-                                      reply.parse::<sup_proto::types::ServiceStatus>()
-                                           .map_err(SrvClientError::Decode)?;
+                                  let m = reply.parse::<sup_proto::types::ServiceStatus>()
+                                               .map_err(SrvClientError::Decode)?;
                                   out.push(m.ident.into());
                                   Ok(())
                               }
