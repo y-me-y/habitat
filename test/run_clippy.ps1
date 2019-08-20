@@ -30,11 +30,18 @@ $clippyArgs += Convert-ArrayToArgs -arg A -list (Get-Content $AllowedLintsPath)
 $clippyArgs += Convert-ArrayToArgs -arg W -list (Get-Content $LintsToFixPath)
 $clippyArgs += Convert-ArrayToArgs -arg D -list (Get-Content $DeniedLintsPath)
 
-$clippyCommand = "cargo +$toolchain clippy --all-targets --tests -- $clippyArgs"
-Write-Host "--- Running clippy!"
-Write-Host "Clippy rules: $clippyCommand"
-cargo +$toolchain version
-cargo +$toolchain clippy --version
-Invoke-Expression $clippyCommand
+
+Copy-Item C:\Workdir -Destination C:\clippy -Recurse
+
+Push-Location "C:\clippy"
+try {
+    $clippyCommand = "cargo +$toolchain clippy --all-targets --tests -- $clippyArgs"
+    Write-Host "--- Running clippy!"
+    Write-Host "Clippy rules: $clippyCommand"
+    cargo +$toolchain version
+    cargo +$toolchain clippy --version
+    Invoke-Expression $clippyCommand
+}
+finally { Pop-Location }
 
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
