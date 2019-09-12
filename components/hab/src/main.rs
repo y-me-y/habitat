@@ -538,7 +538,6 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT)
 }
 
-// WIP TODO
 fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag) -> Result<()> {
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
@@ -553,8 +552,7 @@ fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag
 
     init();
 
-    common::command::package::download::start(ui, /* TODO implement download on pattern of
-                                                   * install */
+    common::command::package::download::start(ui,
                                               &url,
                                               &channel,
                                               PRODUCT,
@@ -563,8 +561,6 @@ fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag
                                               target,
                                               &cache_dir,
                                               token.as_ref().map(String::as_str))?;
-
-    // TODO FIX
     Ok(())
 }
 
@@ -1445,15 +1441,15 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
 fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("AUTH_TOKEN") {
         Some(o) => Ok(o.to_string()),
-        None => {
-            match henv::var(AUTH_TOKEN_ENVVAR) {
-                Ok(v) => Ok(v),
-                Err(_) => {
-                    config::load()?.auth_token
-                                   .ok_or_else(|| Error::ArgumentError(String::from("No auth token specified")))
-                }
+        None => match henv::var(AUTH_TOKEN_ENVVAR) {
+            Ok(v) => Ok(v),
+            Err(_) => {
+                config::load()?.auth_token
+                               .ok_or_else(|| {
+                                   Error::ArgumentError(String::from("No auth token specified"))
+                               })
             }
-        }
+        },
     }
 }
 
@@ -1642,10 +1638,10 @@ pub fn expand_line(line: &str, file: &str) -> Result<Option<PackageIdent>> {
         0 => Ok(None),
         _ => {
             PackageIdent::from_str(trimmed).map_err(|_| {
-                                               Error::ArgumentError(format!(
-                    "{} in file {} is not a valid PackageIdent",
-                    line, file
-                ))
+                                               Error::ArgumentError(format!("{} in file {} is \
+                                                                             not a valid \
+                                                                             PackageIdent",
+                                                                            line, file))
                                            })
                                            .map(Some)
         }

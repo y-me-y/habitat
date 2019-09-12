@@ -5,11 +5,11 @@ set -euo pipefail
 source .expeditor/scripts/verify/shared.sh
 
 toolchain="${1:-"$(get_toolchain)"}"
-install_rustup
-install_rust_toolchain "$toolchain"
+#install_rustup
+#install_rust_toolchain "$toolchain"
 
 # TODO: these should be in a shared script?
-install_hab_pkg core/bzip2 core/libarchive core/libsodium core/openssl core/xz core/zeromq core/protobuf
+#install_hab_pkg core/bzip2 core/libarchive core/libsodium core/openssl core/xz core/zeromq core/protobuf
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
@@ -29,7 +29,7 @@ PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path co
 
 # Install clippy
 echo "--- :rust: Installing clippy"
-rustup component add --toolchain "$toolchain" clippy
+#rustup component add --toolchain "$toolchain" clippy
 
 # Lints we need to work through and decide as a team whether to allow or fix
 mapfile -t unexamined_lints < "$2"

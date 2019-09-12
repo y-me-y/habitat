@@ -1,12 +1,12 @@
-//! Installs a Habitat package from a [depot](../depot).
+//! Downloads a Habitat package from a [depot](../depot).
 //!
 //! # Examples
 //!
 //! ```bash
-//! $ hab pkg install core/redis
+//! $ hab pkg download core/redis
 //! ```
 //!
-//! Will install `core/redis` package from a custom depot:
+//! Will download `core/redis` package from a custom depot:
 //!
 //! ```bash
 //! $ hab pkg install core/redis/3.0.1 redis -u http://depot.co:9633
@@ -28,15 +28,15 @@ use std::{collections::HashSet,
 use crate::{api_client::{self,
                          BoxedClient,
                          Client,
-                         Error::APIError},
+                         Error::APIError,
+                         Package},
             hcore::{self,
                     crypto::{artifact,
                              keys::parse_name_with_rev,
                              SigKeyPair},
                     fs::{cache_artifact_path,
                          cache_key_path},
-                    package::{Identifiable,
-                              PackageArchive,
+                    package::{PackageArchive,
                               PackageIdent,
                               PackageIdentTarget,
                               PackageTarget},
@@ -101,8 +101,10 @@ pub fn start<U>(ui: &mut U,
                 -> Result<()>
     where U: UIWriter
 {
-    // TODO (CM): rename fs::cache_key_path so the naming is
-    // consistent and flows better.
+    debug!("Starting download with url: {}, channel: {}, product: {}, version: {}, target: {}, \
+            fs_root_path: {:?}, token: {:?}",
+           url, channel, product, version, target, fs_root_path, token);
+
     let key_cache_path = &cache_key_path(Some(fs_root_path));
     debug!("install key_cache_path: {}", key_cache_path.display());
 
@@ -113,20 +115,16 @@ pub fn start<U>(ui: &mut U,
     let api_client = Client::new(url, product, version, Some(fs_root_path))?;
     let task = DownloadTask { idents,
                               target,
+                              url,
                               api_client,
                               token,
                               channel,
                               artifact_cache_path,
                               key_cache_path };
 
-    let expanded_idents: HashSet<PackageIdentTarget> = task.expand_sources(ui).unwrap();
+    let downloaded_artifacts: Vec<PackageArchive> = task.execute(ui).unwrap();
 
-    debug!("Expanded package count: {}", expanded_idents.len());
-
-    // This could quite reasonably be done in parallel; and probably needs retries
-    for package in expanded_idents.iter() {
-        task.get_cached_archive(ui, &package)?;
-    }
+    debug!("Expanded package count: {}", downloaded_artifacts.len());
 
     Ok(())
 }
@@ -134,6 +132,7 @@ pub fn start<U>(ui: &mut U,
 struct DownloadTask<'a> {
     idents: Vec<PackageIdent>,
     target: PackageTarget,
+    url: &'a str,
     api_client: BoxedClient,
     token: Option<&'a str>,
     channel: &'a ChannelIdent,
@@ -143,122 +142,116 @@ struct DownloadTask<'a> {
 }
 
 impl<'a> DownloadTask<'a> {
-    // For each source, use depot to e
+    fn execute<T>(&self, ui: &mut T) -> Result<Vec<PackageArchive>>
+        where T: UIWriter
+    {
+        // This was written intentionally with an eye towards data parallelism
+        // Any or all of these phases should naturally fit a fork-join model
+
+        ui.begin(format!("Preparing to download necessary packages for {} idents",
+                         self.idents.len()))?;
+        ui.begin(format!("Using channel {} from {}", self.channel, self.url))?;
+        ui.begin(format!("Storing in cache at {:?} ", self.artifact_cache_path))?;
+
+        // Phase 1: Expand to fully qualified deps and TDEPS
+        let expanded_idents = self.expand_sources(ui)?;
+
+        // Phase 2: Download artifacts
+        let downloaded_artifacts = self.download_artifacts(ui, &expanded_idents)?;
+
+        Ok(downloaded_artifacts)
+    }
+
+    // For each source, use the builder/depot to expand it to a fully qualifed form
+    // The same call gives us the TDEPS, add those as
     fn expand_sources<T>(&self, ui: &mut T) -> Result<HashSet<PackageIdentTarget>>
         where T: UIWriter
     {
-        ui.begin(format!("Preparing to download necessary packages for {} idents",
-                         self.idents.len()))?;
-        ui.begin(format!("Storing in cache at {:?} ", self.artifact_cache_path))?;
-        ui.status(Status::Using, format!("token {:?}", self.token))?;
+        let mut expanded_packages = Vec::<Package>::new();
+        let mut expanded_idents = HashSet::<PackageIdentTarget>::new();
 
-        let mut expanded_artifacts = HashSet::<PackageIdentTarget>::new();
-
+        // This loop should be easy to convert to a parallel map
         for ident in &self.idents {
-            match self.determine_latest_from_ident(ui, &ident) {
-                Err(_) => {
-                    // Probably should be a little more granular with errors; retry 500's etc.
-                    ui.status(Status::Missing,
-                              format!("{} not found for {} architecture", ident, self.target))?;
-                }
-                Ok(artifact) => {
-                    ui.status(Status::Using,
-                              format!("{} as lastest matching {}", artifact, ident))?;
-                    self.expand_fully_qualified_dep(ui, &artifact, &mut expanded_artifacts)?;
-                }
+            let latest = self.determine_latest_from_ident(ui,
+                                                      &PackageIdentTarget { ident:  ident.clone(),
+                                                                            target: self.target, });
+            if let Ok(package) = latest {
+                expanded_packages.push(package);
+            }
+        }
+
+        // Collect all the expanded deps into one structure
+        // Done separately because it's not as easy to parallelize
+        for package in expanded_packages {
+            expanded_idents.insert(PackageIdentTarget { ident:  package.ident,
+                                                        target: self.target, });
+            for ident in package.tdeps {
+                expanded_idents.insert(PackageIdentTarget { ident,
+                                                            target: self.target });
             }
         }
 
         ui.status(Status::Found,
-                  format!("{} package artifacts, including transitive deps",
-                          expanded_artifacts.len()))?;
+                  format!("{} artifacts", expanded_idents.len()))?;
 
-        Ok(expanded_artifacts)
+        Ok(expanded_idents)
     }
 
-    // This function and it's sibling in install.rs deserve to be refactored to eke out commonality.
+    fn download_artifacts<T>(&self,
+                             ui: &mut T,
+                             expanded_idents: &HashSet<PackageIdentTarget>)
+                             -> Result<Vec<PackageArchive>>
+        where T: UIWriter
+    {
+        let mut downloaded_artifacts = Vec::<PackageArchive>::new();
+
+        ui.status(Status::Downloading,
+                  format!("Downloading {} artifacts", expanded_idents.len()))?;
+
+        for ident in expanded_idents {
+            // TODO think through error handling here; failure to fetch, etc
+            // Probably worth keeping statistics
+            let archive: PackageArchive = self.get_cached_archive(ui, &ident)?;
+
+            downloaded_artifacts.push(archive);
+        }
+
+        Ok(downloaded_artifacts)
+    }
+
     fn determine_latest_from_ident<T>(&self,
                                       ui: &mut T,
-                                      ident: &PackageIdent)
-                                      -> Result<PackageIdentTarget>
+                                      ident: &PackageIdentTarget)
+                                      -> Result<Package>
         where T: UIWriter
     {
-        let possible_package = PackageIdentTarget { ident:  ident.clone(),
-                                                    target: self.target, };
-
-        if ident.fully_qualified() {
-            // If we have a fully qualified package identifier, then our work is done--there can
-            // only be *one* package that satisfies a fully qualified identifier.
-            Ok(possible_package)
-        } else {
-            // Unlike in the install command, we always hit the online
-            // depot; our purpose is to sync with latest, and falling
-            // back to a local package would defeat that. Find the
-            // latest package in the proper channel from Builder API,
-            ui.status(Status::Determining,
-                      format!("latest version of {} in the '{}' channel",
-                              &ident, self.channel))?;
-            match self.fetch_latest_pkg_ident_in_channel_for(&possible_package, self.channel) {
-                Ok(latest_artifact) => Ok(latest_artifact),
-                Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => {
-                    self.recommend_channels(ui, &possible_package)?;
-                    Err(Error::PackageNotFound("".to_string()))
-                }
-                Err(e) => {
-                    debug!("error fetching ident: {:?}", e);
-                    Err(e)
-                }
+        // Unlike in the install command, we always hit the online
+        // depot; our purpose is to sync with latest, and falling back
+        // to a local package would defeat that. Find the latest
+        // package in the proper channel from Builder API,
+        ui.status(Status::Determining,
+                  format!("latest version of {} in the '{}' channel",
+                          &ident, self.channel))?;
+        match self.fetch_latest_package_in_channel_for(ident, self.channel, self.token) {
+            Ok(latest_package) => {
+                ui.status(Status::Using,
+                          format!("{} as lastest matching {}", latest_package.ident, ident))?;
+                Ok(latest_package)
+            }
+            Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => {
+                // In install we attempt to recommend a channel to look in. That's a bit of a
+                // heavyweight process, and probably a bad idea in the context of
+                // what's a normally a batch process. It might be ok to fall back to
+                // the stable channel, but for now, error.
+                ui.warn(format!("No releases of {} for exist in the '{}' channel",
+                                ident, self.channel))?;
+                Err(Error::PackageNotFound("".to_string()))
+            }
+            Err(e) => {
+                debug!("error fetching ident {}: {:?}", ident, e);
+                Err(e)
             }
         }
-    }
-
-    //
-    fn expand_fully_qualified_dep<T>(&self,
-                                     ui: &mut T,
-                                     package: &PackageIdentTarget,
-                                     expanded_idents: &mut HashSet<PackageIdentTarget>)
-                                     -> Result<()>
-        where T: UIWriter
-    {
-        // If we've already put this package in the expanded idents
-        // (because it is a transitive dep of something we've already
-        // looked at), we can stop, our job is done
-        if expanded_idents.contains(&package) {
-            return Ok(());
-        }
-
-        // We fetch the whole artifact; we *could* do this in two passes where we fetch the TDEPS
-        // via the API, and go back and download that expanded list as a separate phase.
-        // But if we also use local packages as a source of truth for TDEPS doing it this way
-        // simplifies the logic, and saves a API call
-
-        // The flip side of this reuse is that we may well want to do API calls and downloads in
-        // parallel, and the more complex structure here makes it harder. For parallelism,
-        // it would be easier to do it in phases; phase 1: resolve all idents to fully qualified
-        // ones, phase 2: expand all tdeps, phase 3: download everything. Each phase could
-        // be done pretty straightforwardly as a parallel fork-join operation.
-
-        let mut archive: PackageArchive = self.get_cached_archive(ui, &package)?;
-
-        expanded_idents.insert(package.clone()); // need to figure out how to indicate package and expanded_idents have same lifetime
-
-        // At this point we have the package locally, and can extract the TDEPS
-        let dependencies = archive.tdeps()?;
-        let dep_count = dependencies.len();
-        let expanded_idents_length_before = expanded_idents.len();
-
-        for dependency in dependencies.iter() {
-            let dep_package = PackageIdentTarget { ident: dependency.clone(), /* Can I remove
-                                                                               * this? */
-                                                   target: package.target, };
-            expanded_idents.insert(dep_package);
-        }
-
-        debug!("Found {} TDEPS, net added {} deps",
-               dep_count,
-               expanded_idents.len() - expanded_idents_length_before);
-
-        Ok(())
     }
 
     // This function and it's sibling get_cached_artifact in
@@ -376,60 +369,14 @@ impl<'a> DownloadTask<'a> {
             .join(package.archive_name().unwrap())
     }
 
-    // This function and it's sibling in install.rs deserve to be refactored to eke out commonality.
-    fn fetch_latest_pkg_ident_in_channel_for(&self,
-                                             artifact: &PackageIdentTarget,
-                                             channel: &ChannelIdent)
-                                             -> Result<PackageIdentTarget> {
+    fn fetch_latest_package_in_channel_for(&self,
+                                           ident: &PackageIdentTarget,
+                                           channel: &ChannelIdent,
+                                           token: Option<&str>)
+                                           -> Result<Package> {
         let origin_package =
             self.api_client
-                .show_package((&artifact.ident, artifact.target), channel, self.token)?;
-        Ok(PackageIdentTarget { ident:  origin_package,
-                                target: self.target, })
-    }
-
-    // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's
-    // better to warn that nothing is found and redirect a user to run another standalone
-    // `hab pkg ...` subcommand to get more information.
-    fn recommend_channels<T>(&self, ui: &mut T, package: &PackageIdentTarget) -> Result<()>
-        where T: UIWriter
-    {
-        if let Ok(recommendations) = self.get_channel_recommendations(&package) {
-            if !recommendations.is_empty() {
-                ui.warn(format!("No releases of {} exist in the '{}' channel",
-                                &package, self.channel))?;
-                ui.warn("The following releases were found:")?;
-                for r in recommendations {
-                    ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
-                }
-            }
-        }
-        Ok(())
-    }
-
-    /// Get a list of suggested package identifiers from all
-    /// channels. This is used to generate actionable user feedback
-    /// when the desired package was not found in the specified
-    /// channel.
-    fn get_channel_recommendations(&self,
-                                   package: &PackageIdentTarget)
-                                   -> Result<Vec<(String, String)>> {
-        let mut res = Vec::new();
-
-        let channels = match self.api_client.list_channels(package.ident.origin(), false) {
-            Ok(channels) => channels,
-            Err(e) => {
-                debug!("Failed to get channel list: {:?}", e);
-                return Err(Error::PackageNotFound("".to_string()));
-            }
-        };
-
-        for channel in channels.into_iter().map(ChannelIdent::from) {
-            if let Ok(pkg) = self.fetch_latest_pkg_ident_in_channel_for(package, &channel) {
-                res.push((channel.to_string(), format!("{}", pkg)));
-            }
-        }
-
-        Ok(res)
+                .show_package_metadata((&ident.ident, ident.target), channel, token)?;
+        Ok(origin_package)
     }
 }
