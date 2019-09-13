@@ -628,7 +628,9 @@ mod tests {
                                  ServiceGroup}};
     use std::{fs,
               io::BufReader,
-              iter};
+              iter,
+              net::{IpAddr,
+                    Ipv4Addr}};
     use tempfile::TempDir;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
@@ -689,7 +691,8 @@ mod tests {
         let sys = Sys::new(true,
                            GossipListenAddr::default(),
                            ListenCtlAddr::default(),
-                           HttpListenAddr::default()).expect("to create Sys");
+                           HttpListenAddr::default(),
+                           IpAddr::V4(Ipv4Addr::LOCALHOST));
 
         let pg_id = PackageIdent::new("testing",
                                       &service_group.service(),
