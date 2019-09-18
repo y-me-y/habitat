@@ -52,7 +52,6 @@ use habitat_core::{crypto::{init,
                    env::{self as henv,
                          Config as _},
                    fs::{cache_artifact_path,
-                        cache_path,
                         launcher_root_path},
                    os::process::ShutdownTimeout,
                    package::{target,
@@ -541,7 +540,7 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag) -> Result<()> {
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
-    let cache_dir = cache_dir_from_matches_or_default(m);
+    let cache_dir = cache_dir_from_matches(m);
     let channel = channel_from_matches_or_default(m);
 
     let mut install_sources = download_idents_from_matches(m)?;
@@ -559,7 +558,7 @@ fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag
                                               VERSION,
                                               install_sources_from_file,
                                               target,
-                                              &cache_dir,
+                                              cache_dir.as_ref(),
                                               token.as_ref().map(String::as_str))?;
     Ok(())
 }
@@ -1619,7 +1618,9 @@ fn download_idents_from_file_matches(matches: &ArgMatches<'_>) -> Result<Vec<Pac
         for filename in files {
             let file = match File::open(filename) {
                 Ok(f) => f,
-                Err(_e) => return Err(Error::ArgumentError(format!("Can't open file {}", filename)))
+                Err(_e) => {
+                    return Err(Error::ArgumentError(format!("Can't open file {}", filename)))
+                }
             };
             let buf_reader = BufReader::new(file);
             let packages_or_nothing: Result<Vec<Option<PackageIdent>>> =
@@ -1640,27 +1641,27 @@ pub fn expand_line(line: &str, file: &str) -> Result<Option<PackageIdent>> {
     match trimmed.len() {
         0 => Ok(None),
         _ => {
-            PackageIdent::from_str(trimmed)
-                .map_err(|_| {
-                    Error::ArgumentError(format!("{} in file {} is not a valid PackageIdent",
-                                                 line, file))
-                })
-                .map(Some)
+            PackageIdent::from_str(trimmed).map_err(|_| {
+                                               Error::ArgumentError(format!("{} in file {} is \
+                                                                             not a valid \
+                                                                             PackageIdent",
+                                                                            line, file))
+                                           })
+                                           .map(Some)
         }
     }
 }
 
-fn ident_from_str_helper(s: &str, file: &str) -> Result<PackageIdent> { 
+fn ident_from_str_helper(s: &str, file: &str) -> Result<PackageIdent> {
     PackageIdent::from_str(s).map_err(|_| {
-        Error::ArgumentError(format!("{} in file {} is not a valid PackageIdent",
-                                     s, file))
-    })
+                                 Error::ArgumentError(format!("{} in file {} is not a valid \
+                                                               PackageIdent",
+                                                              s, file))
+                             })
 }
 
-fn cache_dir_from_matches_or_default(matches: &ArgMatches<'_>) -> PathBuf {
-    matches.value_of("CACHE_DIRECTORY")
-           .map(PathBuf::from)
-           .unwrap_or_else(|| cache_path::<PathBuf>(None))
+fn cache_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
+    matches.value_of("CACHE_DIRECTORY").map(PathBuf::from)
 }
 
 fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {

@@ -96,7 +96,7 @@ pub fn start<U>(ui: &mut U,
                 version: &str,
                 idents: Vec<PackageIdent>,
                 target: PackageTarget,
-                fs_root_path: &Path,
+                fs_root_path: Option<&PathBuf>,
                 token: Option<&str>)
                 -> Result<()>
     where U: UIWriter
@@ -105,14 +105,16 @@ pub fn start<U>(ui: &mut U,
             fs_root_path: {:?}, token: {:?}",
            url, channel, product, version, target, fs_root_path, token);
 
-    let key_cache_path = &cache_key_path(Some(fs_root_path));
+    let key_cache_path = &cache_key_path(fs_root_path);
     debug!("install key_cache_path: {}", key_cache_path.display());
 
-    let artifact_cache_path = &cache_artifact_path(Some(fs_root_path));
+    let artifact_cache_path = &cache_artifact_path(fs_root_path);
     debug!("install artifact_cache_path: {}",
            artifact_cache_path.display());
 
-    let api_client = Client::new(url, product, version, Some(fs_root_path))?;
+    // TODO we use the same root path for ssl certs as we do for the rest of the root path,
+    // We shouldn't probably override it here, as this appears to be largely for cert paths
+    let api_client = Client::new(url, product, version, fs_root_path.map(PathBuf::as_path))?;
     let task = DownloadTask { idents,
                               target,
                               url,
