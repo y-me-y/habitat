@@ -1617,7 +1617,10 @@ fn download_idents_from_file_matches(matches: &ArgMatches<'_>) -> Result<Vec<Pac
 
     if let Some(files) = matches.values_of("PKG_IDENT_FILE") {
         for filename in files {
-            let file = File::open(filename).unwrap(); // This is a likely user error; we should be more graceful
+            let file = match File::open(filename) {
+                Ok(f) => f,
+                Err(_e) => return Err(Error::ArgumentError(format!("Can't open file {}", filename)))
+            };
             let buf_reader = BufReader::new(file);
             let packages_or_nothing: Result<Vec<Option<PackageIdent>>> =
                 buf_reader.lines()
@@ -1637,15 +1640,21 @@ pub fn expand_line(line: &str, file: &str) -> Result<Option<PackageIdent>> {
     match trimmed.len() {
         0 => Ok(None),
         _ => {
-            PackageIdent::from_str(trimmed).map_err(|_| {
-                                               Error::ArgumentError(format!("{} in file {} is \
-                                                                             not a valid \
-                                                                             PackageIdent",
-                                                                            line, file))
-                                           })
-                                           .map(Some)
+            PackageIdent::from_str(trimmed)
+                .map_err(|_| {
+                    Error::ArgumentError(format!("{} in file {} is not a valid PackageIdent",
+                                                 line, file))
+                })
+                .map(Some)
         }
     }
+}
+
+fn ident_from_str_helper(s: &str, file: &str) -> Result<PackageIdent> { 
+    PackageIdent::from_str(s).map_err(|_| {
+        Error::ArgumentError(format!("{} in file {} is not a valid PackageIdent",
+                                     s, file))
+    })
 }
 
 fn cache_dir_from_matches_or_default(matches: &ArgMatches<'_>) -> PathBuf {
