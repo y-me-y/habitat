@@ -9,16 +9,19 @@
 //! Will download `core/redis` package from a custom depot:
 //!
 //! ```bash
-//! $ hab pkg install core/redis/3.0.1 redis -u http://depot.co:9633
+//! $ hab pkg download core/redis/3.0.1 redis -u http://depot.co:9633
 //! ```
 //!
-//! This would install the `3.0.1` version of redis.
+//! This would download the `3.0.1` version of redis.
 //!
 //! # Internals
-//!
+//! 
+//! * Resolve the list of partial artifact identifiers to fully qualified idents
+//! * Gather the TDEPS of the list (done concurrently with the above step)
 //! * Download the artifact
 //! * Verify it is un-altered
-//! * Unpack it
+//! * Fetch the signing keys
+
 
 use std::{collections::HashSet,
           path::{Path,
@@ -54,34 +57,17 @@ use crate::{error::{Error,
 pub const RETRIES: usize = 5;
 pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum InstallMode {
-    Online,
-    Offline,
-}
-
-impl Default for InstallMode {
-    fn default() -> Self { InstallMode::Online }
-}
-
-/// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
-/// release package coordinates are guaranteed to be set. This fully-qualified-ness is checked on
-/// construction and as the underlying representation is immutable, this state does not change.
-
 /// Download a Habitat package.
 ///
-/// If an `PackageIdentTarget` is given, we retrieve the package
-/// from the specified Builder `url`. Providing a fully-qualified
-/// identifer will result in that exact package being installed
-/// (regardless of `channel`). Providing a partially-qualified
-/// identifier will result in the installation of latest appropriate
-/// release from the given `channel`.
+/// If an `PackageIdentTarget` is given, we retrieve the package from the specified Builder
+/// `url`. Providing a fully-qualified identifer will result in that exact package being installed
+/// (regardless of `channel`). Providing a partially-qualified identifier will result in the
+/// installation of latest appropriate release from the given `channel`.
 ///
-/// Any dependencies of will be retrieved from Builder (if they're not
-/// already cached locally).
+/// Any dependencies of will be retrieved from Builder (if they're not already cached locally).
 ///
-/// At the end of this function, the specified package and all its
-/// dependencies will be downloaded on the system.
+/// At the end of this function, the specified package and all its dependencies will be downloaded
+/// on the system.
 
 /// Note: it's worth investigating whether
 /// LocalPackageUsage makes sense here
@@ -237,7 +223,7 @@ impl<'a> DownloadTask<'a> {
         match self.fetch_latest_package_in_channel_for(ident, self.channel, self.token) {
             Ok(latest_package) => {
                 ui.status(Status::Using,
-                          format!("{} as lastest matching {}", latest_package.ident, ident))?;
+                          format!("{} as latest matching {}", latest_package.ident, ident))?;
                 Ok(latest_package)
             }
             Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => {
@@ -247,7 +233,7 @@ impl<'a> DownloadTask<'a> {
                 // the stable channel, but for now, error.
                 ui.warn(format!("No releases of {} for exist in the '{}' channel",
                                 ident, self.channel))?;
-                Err(Error::PackageNotFound("".to_string()))
+                Err(Error::PackageNotFound(format!("{} in channel {}", ident, self.channel).to_string()))
             }
             Err(e) => {
                 debug!("error fetching ident {}: {:?}", ident, e);

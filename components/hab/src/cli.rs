@@ -443,7 +443,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
              )
-            (subcommand: sub_pkg_download(feature_flags))
+            (subcommand: sub_pkg_download())
             (@subcommand env =>
                 (about: "Prints the runtime environment of a specific installed package")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
@@ -906,8 +906,8 @@ fn sub_pkg_build() -> App<'static, 'static> {
     sub
 }
 
-fn sub_pkg_download(feature_flags: FeatureFlag) -> App<'static, 'static> {
-    let mut sub = clap_app!(@subcommand download =>
+fn sub_pkg_download() -> App<'static, 'static> {
+    let sub = clap_app!(@subcommand download =>
     (about: "Download Habitat artifacts (including dependencies and keys) from Builder")
     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
     (@arg BLDR_URL: --url -u +takes_value {valid_url} default_value(habitat_core::url::DEFAULT_BLDR_URL)
@@ -924,15 +924,6 @@ fn sub_pkg_download(feature_flags: FeatureFlag) -> App<'static, 'static> {
     (@arg PKG_TARGET: --target -t +takes_value {valid_target}
             "Target architecture to fetch. Allowable options are one of (TODO ADD THIS)")
     );
-    // TODO: Discover the background for this; while it seems reasonable to have, I'd really like to
-    // not cargo cult it in.
-    if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) {
-        sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
-                                                           packages when a corresponding \
-                                                           package cannot be installed from \
-                                                           Builder")
-                                                    .long("ignore-local"));
-    };
     sub
 }
 
