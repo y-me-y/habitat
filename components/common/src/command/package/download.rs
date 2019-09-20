@@ -15,13 +15,12 @@
 //! This would download the `3.0.1` version of redis.
 //!
 //! # Internals
-//! 
+//!
 //! * Resolve the list of partial artifact identifiers to fully qualified idents
 //! * Gather the TDEPS of the list (done concurrently with the above step)
 //! * Download the artifact
 //! * Verify it is un-altered
 //! * Fetch the signing keys
-
 
 use std::{collections::HashSet,
           path::{Path,
@@ -82,33 +81,35 @@ pub fn start<U>(ui: &mut U,
                 version: &str,
                 idents: Vec<PackageIdent>,
                 target: PackageTarget,
-                fs_root_path: Option<&PathBuf>,
+                download_path: Option<&PathBuf>,
                 token: Option<&str>)
                 -> Result<()>
     where U: UIWriter
 {
     debug!("Starting download with url: {}, channel: {}, product: {}, version: {}, target: {}, \
-            fs_root_path: {:?}, token: {:?}",
-           url, channel, product, version, target, fs_root_path, token);
+            download_path: {:?}, token: {:?}",
+           url, channel, product, version, target, download_path, token);
 
-    let key_cache_path = &cache_key_path(fs_root_path);
-    debug!("install key_cache_path: {}", key_cache_path.display());
+    let key_download_path = &path_helper(download_path, "keys", &cache_key_path::<PathBuf>(None));
+    debug!("install key_download_path: {:?}", key_download_path);
 
-    let artifact_cache_path = &cache_artifact_path(fs_root_path);
-    debug!("install artifact_cache_path: {}",
-           artifact_cache_path.display());
+    let artifact_download_path = &path_helper(download_path,
+                                              "artifacts",
+                                              &cache_artifact_path::<PathBuf>(None));
+    debug!("install artifact_download_path: {:?}",
+           artifact_download_path);
 
-    // TODO we use the same root path for ssl certs as we do for the rest of the root path,
-    // We shouldn't probably override it here, as this appears to be largely for cert paths
-    let api_client = Client::new(url, product, version, fs_root_path.map(PathBuf::as_path))?;
+    // We deliberately use None to specifiy the default path as this is used for cert paths, which
+    // we don't want to override.
+    let api_client = Client::new(url, product, version, None)?;
     let task = DownloadTask { idents,
                               target,
                               url,
                               api_client,
                               token,
                               channel,
-                              artifact_cache_path,
-                              key_cache_path };
+                              artifact_download_path,
+                              key_download_path };
 
     let downloaded_artifacts: Vec<PackageArchive> = task.execute(ui).unwrap();
 
@@ -125,8 +126,8 @@ struct DownloadTask<'a> {
     token: Option<&'a str>,
     channel: &'a ChannelIdent,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
-    artifact_cache_path: &'a Path,
-    key_cache_path: &'a Path,
+    artifact_download_path: &'a Path,
+    key_download_path: &'a Path,
 }
 
 impl<'a> DownloadTask<'a> {
@@ -139,7 +140,7 @@ impl<'a> DownloadTask<'a> {
         ui.begin(format!("Preparing to download necessary packages for {} idents",
                          self.idents.len()))?;
         ui.begin(format!("Using channel {} from {}", self.channel, self.url))?;
-        ui.begin(format!("Storing in cache at {:?} ", self.artifact_cache_path))?;
+        ui.begin(format!("Storing in cache at {:?} ", self.artifact_download_path))?;
 
         // Phase 1: Expand to fully qualified deps and TDEPS
         let expanded_idents = self.expand_sources(ui)?;
@@ -281,7 +282,7 @@ impl<'a> DownloadTask<'a> {
         match self.api_client
                   .fetch_package((&package.ident, package.target),
                                  self.token,
-                                 self.artifact_cache_path,
+                                 self.artifact_download_path,
                                  ui.progress())
         {
             Ok(_) => Ok(()),
@@ -304,8 +305,11 @@ impl<'a> DownloadTask<'a> {
         ui.status(Status::Downloading,
                   format!("{} public origin key", &name_with_rev))?;
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        self.api_client
-            .fetch_origin_key(&name, &rev, token, self.key_cache_path, ui.progress())?;
+        self.api_client.fetch_origin_key(&name,
+                                          &rev,
+                                          token,
+                                          self.key_download_path,
+                                          ui.progress())?;
         ui.status(Status::Cached,
                   format!("{} public origin key", &name_with_rev))?;
         Ok(())
@@ -334,11 +338,11 @@ impl<'a> DownloadTask<'a> {
         }
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
-        if SigKeyPair::get_public_key_path(&nwr, self.key_cache_path).is_err() {
+        if SigKeyPair::get_public_key_path(&nwr, self.key_download_path).is_err() {
             self.fetch_origin_key(ui, &nwr, self.token)?;
         }
 
-        artifact.verify(&self.key_cache_path)?;
+        artifact.verify(&self.key_download_path)?;
         debug!("Verified {} signed by {}", package, &nwr);
         Ok(())
     }
@@ -353,7 +357,7 @@ impl<'a> DownloadTask<'a> {
     /// the local package cache. It does not mean that the package is
     /// actually *in* the package cache, though.
     fn cached_artifact_path(&self, package: &PackageIdentTarget) -> PathBuf {
-        self.artifact_cache_path
+        self.artifact_download_path
             .join(package.archive_name().unwrap())
     }
 
@@ -367,4 +371,10 @@ impl<'a> DownloadTask<'a> {
                 .show_package_metadata((&ident.ident, ident.target), channel, token)?;
         Ok(origin_package)
     }
+}
+
+/// The cache_*_path functions in fs don't let you override a path base with Some(base)
+/// This is a helper until we get that sorted out.
+fn path_helper(base: Option<&PathBuf>, extension: &str, default_path: &PathBuf) -> PathBuf {
+    base.map_or(default_path.to_path_buf(), |x| x.join(extension))
 }

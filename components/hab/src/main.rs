@@ -540,7 +540,7 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag) -> Result<()> {
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
-    let cache_dir = cache_dir_from_matches(m);
+    let download_dir = download_dir_from_matches(m);
     let channel = channel_from_matches_or_default(m);
 
     let mut install_sources = download_idents_from_matches(m)?;
@@ -558,7 +558,7 @@ fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag
                                               VERSION,
                                               install_sources_from_file,
                                               target,
-                                              cache_dir.as_ref(),
+                                              download_dir.as_ref(),
                                               token.as_ref().map(String::as_str))?;
     Ok(())
 }
@@ -1660,8 +1660,8 @@ fn ident_from_str_helper(s: &str, file: &str) -> Result<PackageIdent> {
                              })
 }
 
-fn cache_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
-    matches.value_of("CACHE_DIRECTORY").map(PathBuf::from)
+fn download_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
+    matches.value_of("DOWNLOAD_DIRECTORY").map(PathBuf::from)
 }
 
 fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
